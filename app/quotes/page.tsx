@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
-import { getQuotes } from "@/lib/supabase/queries"
+import { deleteQuote, getQuotes, updateQuote } from "@/lib/supabase/queries"
 import type { Quote } from "@/lib/types"
 import { AddQuoteModal } from "@/components/add-quote-modal"
 import { useAuth } from "@/contexts/auth-context"
 import { getCoupleAuthorIcon, getCoupleAuthorLabel } from "@/lib/utils"
-import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { notifyRomanticDataChanged, useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { Heart, Pencil, Trash2 } from "lucide-react"
 
 export default function QuotesPage() {
   const { user } = useAuth()
@@ -40,6 +41,29 @@ export default function QuotesPage() {
     if (filter === "theirs") return quote.created_by !== user?.id
     return true
   })
+
+  const handleToggleFavorite = async (quote: Quote) => {
+    try {
+      await updateQuote(quote.id, { is_favorite: !quote.is_favorite })
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error updating quote favorite:", error)
+      alert("No pude actualizar la frase. Intenta de nuevo.")
+    }
+  }
+
+  const handleDeleteQuote = async (quote: Quote) => {
+    const confirmed = window.confirm("¿Eliminar esta frase?")
+    if (!confirmed) return
+
+    try {
+      await deleteQuote(quote.id)
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error deleting quote:", error)
+      alert("No pude eliminar la frase. Intenta de nuevo.")
+    }
+  }
 
   return (
     <div className="romantic-page min-h-screen">
@@ -172,6 +196,32 @@ export default function QuotesPage() {
                   </blockquote>
 
                   {quote.is_favorite && <Badge className="bg-accent text-accent-foreground">Favorita</Badge>}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <AddQuoteModal quote={quote}>
+                      <Button variant="outline" size="sm" className="rounded-full bg-transparent">
+                        <Pencil data-icon="inline-start" />
+                        Editar
+                      </Button>
+                    </AddQuoteModal>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full bg-transparent"
+                      onClick={() => handleToggleFavorite(quote)}
+                    >
+                      <Heart data-icon="inline-start" className={quote.is_favorite ? "fill-current text-secondary" : ""} />
+                      {quote.is_favorite ? "Quitar favorito" : "Favorito"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => handleDeleteQuote(quote)}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Eliminar
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

@@ -21,18 +21,35 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
+import type { RomanticMemory } from "@/lib/types"
 
 interface AddLoveLetterModalProps {
   children: React.ReactNode
+  letter?: RomanticMemory
 }
 
-export function AddLoveLetterModal({ children }: AddLoveLetterModalProps) {
+export function AddLoveLetterModal({ children, letter }: AddLoveLetterModalProps) {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
   const [date, setDate] = useState<Date>(new Date())
   const [isSaving, setIsSaving] = useState(false)
+  const isEditing = Boolean(letter)
+
+  const syncFormFromLetter = () => {
+    setTitle(letter?.title ?? "")
+    setContent(letter?.content ?? "")
+    setDate(letter ? new Date(`${letter.date}T00:00:00`) : new Date())
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      syncFormFromLetter()
+    }
+
+    setOpen(nextOpen)
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -41,18 +58,25 @@ export function AddLoveLetterModal({ children }: AddLoveLetterModalProps) {
     setIsSaving(true)
 
     try {
-      const { createMemory } = await import("@/lib/supabase/queries")
-
-      await createMemory({
+      const { createMemory, updateMemory } = await import("@/lib/supabase/queries")
+      const payload = {
         title: title.trim(),
         description: content.trim().slice(0, 180),
         content: content.trim(),
         date: date.toISOString().split("T")[0],
         type: "memory",
-        tags: ["carta"],
-        created_by: user.id,
-        is_favorite: false,
-      })
+        tags: Array.from(new Set([...(letter?.tags ?? []), "carta"])),
+        is_favorite: letter?.is_favorite ?? false,
+      } as const
+
+      if (letter) {
+        await updateMemory(letter.id, payload)
+      } else {
+        await createMemory({
+          ...payload,
+          created_by: user.id,
+        })
+      }
 
       setTitle("")
       setContent("")
@@ -68,12 +92,12 @@ export function AddLoveLetterModal({ children }: AddLoveLetterModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[620px] bg-card/95 backdrop-blur-sm border-accent/20">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-accent-foreground">
-            💌 <span>Guardar Carta</span>
+            💌 <span>{isEditing ? "Editar Carta" : "Guardar Carta"}</span>
           </DialogTitle>
           <DialogDescription>Escribe una carta para conservarla junto a sus recuerdos.</DialogDescription>
         </DialogHeader>
@@ -129,7 +153,7 @@ export function AddLoveLetterModal({ children }: AddLoveLetterModalProps) {
               Cancelar
             </Button>
             <Button type="submit" disabled={isSaving} className="flex-1">
-              {isSaving ? "Guardando..." : "Guardar Carta"}
+              {isSaving ? "Guardando..." : isEditing ? "Guardar Cambios" : "Guardar Carta"}
             </Button>
           </div>
         </form>

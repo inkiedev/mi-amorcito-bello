@@ -1,9 +1,13 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import { Plus } from "lucide-react"
+import { AddMemoryModal } from "@/components/add-memory-modal"
 import { NavigationHeader } from "@/components/navigation-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
 import { getMemories, getQuotes, getSpecialDays } from "@/lib/supabase/queries"
 import type { Quote, RomanticMemory, SpecialDay } from "@/lib/types"
@@ -80,15 +84,28 @@ export default function TimelinePage() {
   }, [memories, quotes, specialDays])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="romantic-page min-h-screen">
       <NavigationHeader />
       <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-12 text-center">
+        <div className="mb-12 text-center letter-reveal">
           <div className="mb-4 text-6xl animate-float">📅</div>
-          <h1 className="mb-2 font-serif text-4xl font-bold text-secondary-foreground">Línea de Tiempo</h1>
+          <h1 className="script-title love-ribbon mb-8 text-5xl font-bold text-foreground md:text-6xl">
+            Línea de Tiempo
+          </h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Un recorrido real por los momentos que ustedes han guardado.
           </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <AddMemoryModal>
+              <Button className="rounded-full">
+                <Plus data-icon="inline-start" />
+                Nuevo Recuerdo
+              </Button>
+            </AddMemoryModal>
+            <Button asChild variant="outline" className="rounded-full bg-transparent">
+              <Link href="/calendar">Ver Calendario</Link>
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -122,7 +139,7 @@ export default function TimelinePage() {
                     </div>
                   </div>
 
-                  <Card className="flex-1 border-primary/10 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                  <Card className="romantic-card flex-1">
                     <CardContent className="p-6">
                       <div className="mb-3 flex items-start justify-between gap-4">
                         <div>

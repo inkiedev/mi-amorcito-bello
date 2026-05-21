@@ -5,13 +5,14 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
-import { getPhotos } from "@/lib/supabase/queries"
+import { deletePhoto, getPhotos, updateMemory } from "@/lib/supabase/queries"
 import type { RomanticMemory } from "@/lib/types"
 import { AddPhotoModal } from "@/components/add-photo-modal"
 import Image from "next/image"
 import { useAuth } from "@/contexts/auth-context"
 import { getCoupleAuthorIcon } from "@/lib/utils"
-import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { notifyRomanticDataChanged, useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { Heart, Pencil, Trash2 } from "lucide-react"
 
 export default function PhotosPage() {
   const { user } = useAuth()
@@ -41,6 +42,29 @@ export default function PhotosPage() {
     if (filter === "theirs") return photo.created_by !== user?.id
     return true
   })
+
+  const handleToggleFavorite = async (photo: RomanticMemory) => {
+    try {
+      await updateMemory(photo.id, { is_favorite: !photo.is_favorite })
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error updating photo favorite:", error)
+      alert("No pude actualizar la foto. Intenta de nuevo.")
+    }
+  }
+
+  const handleDeletePhoto = async (photo: RomanticMemory) => {
+    const confirmed = window.confirm(`¿Eliminar la foto "${photo.title}"?`)
+    if (!confirmed) return
+
+    try {
+      await deletePhoto(photo.id, photo.image_url)
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error deleting photo:", error)
+      alert("No pude eliminar la foto. Intenta de nuevo.")
+    }
+  }
 
   return (
     <div className="romantic-page min-h-screen">
@@ -163,6 +187,32 @@ export default function PhotosPage() {
                     ))}
                   </div>
                   {photo.is_favorite && <Badge className="bg-secondary text-secondary-foreground">Favorita</Badge>}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <AddPhotoModal photo={photo}>
+                      <Button variant="outline" size="sm" className="rounded-full bg-transparent">
+                        <Pencil data-icon="inline-start" />
+                        Editar
+                      </Button>
+                    </AddPhotoModal>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full bg-transparent"
+                      onClick={() => handleToggleFavorite(photo)}
+                    >
+                      <Heart data-icon="inline-start" className={photo.is_favorite ? "fill-current text-secondary" : ""} />
+                      {photo.is_favorite ? "Quitar favorito" : "Favorito"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => handleDeletePhoto(photo)}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Eliminar
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { getMemories } from "@/lib/supabase/queries"
+import { deleteMemory, getMemories, updateMemory } from "@/lib/supabase/queries"
 import type { RomanticMemory } from "@/lib/types"
 import { AddMemoryModal } from "@/components/add-memory-modal"
 import { useAuth } from "@/contexts/auth-context"
 import { getCoupleAuthorIcon, getCoupleAuthorLabel } from "@/lib/utils"
-import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { notifyRomanticDataChanged, useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { Heart, Pencil, Trash2 } from "lucide-react"
 
 export default function MemoriesPage() {
   const { user } = useAuth()
@@ -54,6 +55,29 @@ export default function MemoriesPage() {
       const dateB = new Date(b.date).getTime()
       return sortMode === "newest" ? dateB - dateA : dateA - dateB
     })
+
+  const handleToggleFavorite = async (memory: RomanticMemory) => {
+    try {
+      await updateMemory(memory.id, { is_favorite: !memory.is_favorite })
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error updating memory favorite:", error)
+      alert("No pude actualizar el favorito. Intenta de nuevo.")
+    }
+  }
+
+  const handleDeleteMemory = async (memory: RomanticMemory) => {
+    const confirmed = window.confirm(`¿Eliminar "${memory.title}" de sus recuerdos?`)
+    if (!confirmed) return
+
+    try {
+      await deleteMemory(memory.id)
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error deleting memory:", error)
+      alert("No pude eliminar el recuerdo. Intenta de nuevo.")
+    }
+  }
 
   return (
     <div className="romantic-page min-h-screen">
@@ -186,7 +210,7 @@ export default function MemoriesPage() {
                       </Badge>
                     ))}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
@@ -220,6 +244,30 @@ export default function MemoriesPage() {
                         </div>
                       </DialogContent>
                     </Dialog>
+                    <AddMemoryModal memory={memory}>
+                      <Button variant="outline" size="sm" className="rounded-full bg-transparent">
+                        <Pencil data-icon="inline-start" />
+                        Editar
+                      </Button>
+                    </AddMemoryModal>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full bg-transparent"
+                      onClick={() => handleToggleFavorite(memory)}
+                    >
+                      <Heart data-icon="inline-start" className={memory.is_favorite ? "fill-current text-secondary" : ""} />
+                      {memory.is_favorite ? "Quitar favorito" : "Favorito"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => handleDeleteMemory(memory)}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Eliminar
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

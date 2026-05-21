@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react"
 import { AddLoveLetterModal } from "@/components/add-love-letter-modal"
-import { LoveLetterGenerator } from "@/components/love-letter-generator"
 import { NavigationHeader } from "@/components/navigation-header"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useAuth } from "@/contexts/auth-context"
-import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
-import { getLoveLetters } from "@/lib/supabase/queries"
+import { notifyRomanticDataChanged, useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { deleteMemory, getLoveLetters, updateMemory } from "@/lib/supabase/queries"
 import type { RomanticMemory } from "@/lib/types"
 import { getCoupleAuthorLabel } from "@/lib/utils"
+import { Heart, Pencil, Trash2 } from "lucide-react"
 
 export default function LoveLettersPage() {
   const { user } = useAuth()
@@ -34,13 +34,36 @@ export default function LoveLettersPage() {
     fetchLetters()
   }, [dataVersion])
 
+  const handleToggleFavorite = async (letter: RomanticMemory) => {
+    try {
+      await updateMemory(letter.id, { is_favorite: !letter.is_favorite })
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error updating love letter:", error)
+      alert("No pude actualizar la carta. Intenta de nuevo.")
+    }
+  }
+
+  const handleDeleteLetter = async (letter: RomanticMemory) => {
+    const confirmed = window.confirm(`¿Eliminar la carta "${letter.title}"?`)
+    if (!confirmed) return
+
+    try {
+      await deleteMemory(letter.id)
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error deleting love letter:", error)
+      alert("No pude eliminar la carta. Intenta de nuevo.")
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="romantic-page min-h-screen">
       <NavigationHeader />
       <div className="container mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-8 text-center">
+        <div className="mb-8 text-center letter-reveal">
           <div className="mb-4 text-6xl animate-float">💌</div>
-          <h1 className="mb-2 font-serif text-4xl font-bold text-accent-foreground">Cartas de Amor</h1>
+          <h1 className="script-title love-ribbon mb-8 text-5xl font-bold text-foreground md:text-6xl">Cartas de Amor</h1>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Mensajes largos, promesas, disculpas bonitas y palabras para volver a leer cuando haga falta.
           </p>
@@ -50,11 +73,6 @@ export default function LoveLettersPage() {
           <AddLoveLetterModal>
             <Button className="bg-accent text-accent-foreground hover:bg-accent/90">✍️ Escribir Carta</Button>
           </AddLoveLetterModal>
-          <LoveLetterGenerator>
-            <Button variant="outline" className="bg-transparent">
-              ✨ Generar Inspiración
-            </Button>
-          </LoveLetterGenerator>
         </div>
 
         {isLoading ? (
@@ -89,7 +107,7 @@ export default function LoveLettersPage() {
             {letters.map((letter) => (
               <Card
                 key={letter.id}
-                className="relative overflow-hidden border-accent/10 bg-gradient-to-br from-accent/10 via-card/70 to-primary/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="romantic-card relative overflow-hidden"
               >
                 <div className="absolute right-4 top-4 text-4xl opacity-20">💌</div>
                 <CardHeader>
@@ -106,6 +124,32 @@ export default function LoveLettersPage() {
                 </CardHeader>
                 <CardContent>
                   <p className="line-clamp-5 whitespace-pre-line text-muted-foreground">{letter.content}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <AddLoveLetterModal letter={letter}>
+                      <Button variant="outline" size="sm" className="rounded-full bg-transparent">
+                        <Pencil data-icon="inline-start" />
+                        Editar
+                      </Button>
+                    </AddLoveLetterModal>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full bg-transparent"
+                      onClick={() => handleToggleFavorite(letter)}
+                    >
+                      <Heart data-icon="inline-start" className={letter.is_favorite ? "fill-current text-secondary" : ""} />
+                      {letter.is_favorite ? "Quitar favorito" : "Favorito"}
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => handleDeleteLetter(letter)}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Eliminar
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

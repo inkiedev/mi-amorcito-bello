@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useEffect, useState } from "react"
-import { getSpecialDays } from "@/lib/supabase/queries"
+import { deleteSpecialDay, getSpecialDays } from "@/lib/supabase/queries"
 import type { SpecialDay } from "@/lib/types"
 import { AddSpecialDayModal } from "@/components/add-special-day-modal"
-import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { notifyRomanticDataChanged, useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { Pencil, Trash2 } from "lucide-react"
 
 type SpecialDayFilter = "all" | SpecialDay["category"]
 
@@ -62,6 +63,19 @@ export default function SpecialDaysPage() {
         return "bg-primary/10 text-primary border-primary/20"
       default:
         return "bg-muted/10 text-muted-foreground border-muted/20"
+    }
+  }
+
+  const handleDeleteSpecialDay = async (day: SpecialDay) => {
+    const confirmed = window.confirm(`¿Eliminar "${day.title}" de sus fechas especiales?`)
+    if (!confirmed) return
+
+    try {
+      await deleteSpecialDay(day.id)
+      notifyRomanticDataChanged()
+    } catch (error) {
+      console.error("Error deleting special day:", error)
+      alert("No pude eliminar la fecha. Intenta de nuevo.")
     }
   }
 
@@ -230,6 +244,23 @@ export default function SpecialDaysPage() {
 
                 <CardContent>
                   <p className="text-muted-foreground mb-4 leading-relaxed">{day.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    <AddSpecialDayModal specialDay={day}>
+                      <Button variant="outline" size="sm" className="rounded-full bg-transparent">
+                        <Pencil data-icon="inline-start" />
+                        Editar
+                      </Button>
+                    </AddSpecialDayModal>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => handleDeleteSpecialDay(day)}
+                    >
+                      <Trash2 data-icon="inline-start" />
+                      Eliminar
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}

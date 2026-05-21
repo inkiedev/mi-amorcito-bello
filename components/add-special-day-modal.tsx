@@ -21,14 +21,16 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
+import type { SpecialDay } from "@/lib/types"
 
 interface AddSpecialDayModalProps {
   children: React.ReactNode
+  specialDay?: SpecialDay
 }
 
 type SpecialDayCategory = "anniversary" | "first-time" | "milestone" | "celebration"
 
-export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
+export function AddSpecialDayModal({ children, specialDay }: AddSpecialDayModalProps) {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
@@ -36,23 +38,50 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
   const [date, setDate] = useState<Date>()
   const [category, setCategory] = useState<SpecialDayCategory>("milestone")
   const [isRecurring, setIsRecurring] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const isEditing = Boolean(specialDay)
+
+  const syncFormFromSpecialDay = () => {
+    setTitle(specialDay?.title ?? "")
+    setDescription(specialDay?.description ?? "")
+    setDate(specialDay ? new Date(`${specialDay.date}T00:00:00`) : undefined)
+    setCategory(specialDay?.category ?? "milestone")
+    setIsRecurring(specialDay?.is_recurring ?? false)
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      syncFormFromSpecialDay()
+    }
+
+    setOpen(nextOpen)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!user || !date || !title.trim()) return
 
+    setIsSaving(true)
+
     try {
-      const { createSpecialDay } = await import("@/lib/supabase/queries")
-      
-      await createSpecialDay({
+      const { createSpecialDay, updateSpecialDay } = await import("@/lib/supabase/queries")
+      const payload = {
         title: title.trim(),
         description: description.trim(),
         date: date.toISOString().split('T')[0],
         category,
         is_recurring: isRecurring,
-        created_by: user.id
-      })
+      }
+      
+      if (specialDay) {
+        await updateSpecialDay(specialDay.id, payload)
+      } else {
+        await createSpecialDay({
+          ...payload,
+          created_by: user.id
+        })
+      }
 
       // Resetear formulario
       setTitle("")
@@ -65,6 +94,8 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
     } catch (error) {
       console.error('Error creating special day:', error)
       alert('Error al guardar el día especial. Intenta de nuevo.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -76,12 +107,12 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
   ]
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px] bg-card/95 backdrop-blur-sm border-primary/20">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-primary">
-            🎉 <span>Añadir Día Especial</span>
+            🎉 <span>{isEditing ? "Editar Día Especial" : "Añadir Día Especial"}</span>
           </DialogTitle>
           <DialogDescription>Marca una fecha importante en vuestra historia de amor</DialogDescription>
         </DialogHeader>
@@ -173,12 +204,13 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              disabled={isSaving}
               className="flex-1 border-muted hover:bg-muted/10 bg-transparent"
             >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-              🎉 Guardar Día Especial
+            <Button type="submit" disabled={isSaving} className="flex-1 bg-primary hover:bg-primary/90">
+              {isSaving ? "Guardando..." : isEditing ? "Guardar Cambios" : "🎉 Guardar Día Especial"}
             </Button>
           </div>
         </form>

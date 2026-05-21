@@ -22,12 +22,14 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import Image from "next/image"
 import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
+import type { RomanticMemory } from "@/lib/types"
 
 interface AddPhotoModalProps {
   children: React.ReactNode
+  photo?: RomanticMemory
 }
 
-export function AddPhotoModal({ children }: AddPhotoModalProps) {
+export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
@@ -37,6 +39,7 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>("")
+  const isEditing = Boolean(photo)
 
   useEffect(() => {
     return () => {
@@ -45,6 +48,23 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
       }
     }
   }, [previewUrl])
+
+  const syncFormFromPhoto = () => {
+    setTitle(photo?.title ?? "")
+    setDescription(photo?.description ?? "")
+    setDate(photo ? new Date(`${photo.date}T00:00:00`) : undefined)
+    setTags(photo?.tags.join(", ") ?? "")
+    setFile(null)
+    setPreviewUrl(photo?.image_url ?? "")
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      syncFormFromPhoto()
+    }
+
+    setOpen(nextOpen)
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -58,24 +78,26 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!user || !date || !title.trim() || !file) return
+    if (!user || !date || !title.trim() || (!file && !photo)) return
 
     setIsUploading(true)
     try {
-      const { uploadPhoto, getPhotoUrl, createMemory } = await import("@/lib/supabase/queries")
+      const { uploadPhoto, getPhotoUrl, createMemory, updateMemory } = await import("@/lib/supabase/queries")
+      let imageUrl = photo?.image_url
+
+      if (file) {
+        // Generate unique filename
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`
+        
+        // Upload photo to Supabase Storage
+        await uploadPhoto(file, fileName)
+        
+        // Get public URL
+        imageUrl = await getPhotoUrl(fileName)
+      }
       
-      // Generate unique filename
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`
-      
-      // Upload photo to Supabase Storage
-      await uploadPhoto(file, fileName)
-      
-      // Get public URL
-      const imageUrl = await getPhotoUrl(fileName)
-      
-      // Create memory record
-      await createMemory({
+      const payload = {
         title: title.trim(),
         description: description.trim(),
         content: description.trim(),
@@ -83,9 +105,20 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
         date: date.toISOString().split('T')[0],
         image_url: imageUrl,
         tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        created_by: user.id,
         is_favorite: false
-      })
+      } as const
+
+      if (photo) {
+        await updateMemory(photo.id, {
+          ...payload,
+          is_favorite: photo.is_favorite,
+        })
+      } else {
+        await createMemory({
+          ...payload,
+          created_by: user.id,
+        })
+      }
 
       // Reset form
       setTitle("")
@@ -105,12 +138,12 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[600px] bg-card/95 backdrop-blur-sm border-secondary/20">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-secondary-foreground">
-            📸 <span>Subir Foto</span>
+            📸 <span>{isEditing ? "Editar Foto" : "Subir Foto"}</span>
           </DialogTitle>
           <DialogDescription>Añade una foto especial a vuestra galería de recuerdos</DialogDescription>
         </DialogHeader>
@@ -123,7 +156,7 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              required
+              required={!isEditing}
               className="border-secondary/20 focus:border-secondary"
             />
             {previewUrl && (
@@ -206,9 +239,9 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
             <Button 
               type="submit" 
               className="flex-1 bg-secondary hover:bg-secondary/90"
-              disabled={isUploading || !file}
+              disabled={isUploading || (!file && !isEditing)}
             >
-              {isUploading ? "Subiendo..." : "📸 Subir Foto"}
+              {isUploading ? "Guardando..." : isEditing ? "Guardar Cambios" : "📸 Subir Foto"}
             </Button>
           </div>
         </form>

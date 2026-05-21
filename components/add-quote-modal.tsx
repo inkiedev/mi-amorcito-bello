@@ -21,35 +21,63 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
+import type { Quote } from "@/lib/types"
 
 interface AddQuoteModalProps {
   children: React.ReactNode
+  quote?: Quote
 }
 
-export function AddQuoteModal({ children }: AddQuoteModalProps) {
+export function AddQuoteModal({ children, quote }: AddQuoteModalProps) {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [text, setText] = useState("")
   const [author, setAuthor] = useState("")
   const [context, setContext] = useState("")
   const [date, setDate] = useState<Date>(new Date())
+  const [isSaving, setIsSaving] = useState(false)
+  const isEditing = Boolean(quote)
+
+  const syncFormFromQuote = () => {
+    setText(quote?.text ?? "")
+    setAuthor(quote?.author ?? "")
+    setContext(quote?.context ?? "")
+    setDate(quote ? new Date(`${quote.date}T00:00:00`) : new Date())
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      syncFormFromQuote()
+    }
+
+    setOpen(nextOpen)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     if (!user || !text.trim()) return
 
+    setIsSaving(true)
+
     try {
-      const { createQuote } = await import("@/lib/supabase/queries")
-      
-      await createQuote({
+      const { createQuote, updateQuote } = await import("@/lib/supabase/queries")
+      const payload = {
         text: text.trim(),
         author: author.trim() || undefined,
         context: context.trim() || undefined,
         date: date.toISOString().split('T')[0],
-        created_by: user.id,
-        is_favorite: false
-      })
+        is_favorite: quote?.is_favorite ?? false,
+      }
+      
+      if (quote) {
+        await updateQuote(quote.id, payload)
+      } else {
+        await createQuote({
+          ...payload,
+          created_by: user.id,
+        })
+      }
 
       // Resetear formulario
       setText("")
@@ -61,16 +89,18 @@ export function AddQuoteModal({ children }: AddQuoteModalProps) {
     } catch (error) {
       console.error('Error creating quote:', error)
       alert('Error al guardar la frase. Intenta de nuevo.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px] bg-card/95 backdrop-blur-sm border-accent/20">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-accent-foreground">
-            💬 <span>Añadir Nueva Frase</span>
+            💬 <span>{isEditing ? "Editar Frase" : "Añadir Nueva Frase"}</span>
           </DialogTitle>
           <DialogDescription>Guarda una frase especial que quieras recordar para siempre</DialogDescription>
         </DialogHeader>
@@ -134,12 +164,13 @@ export function AddQuoteModal({ children }: AddQuoteModalProps) {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              disabled={isSaving}
               className="flex-1 border-muted hover:bg-muted/10 bg-transparent"
             >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-              💕 Guardar Frase
+            <Button type="submit" disabled={isSaving} className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
+              {isSaving ? "Guardando..." : isEditing ? "Guardar Cambios" : "💕 Guardar Frase"}
             </Button>
           </div>
         </form>

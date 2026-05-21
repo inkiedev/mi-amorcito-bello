@@ -1,6 +1,7 @@
 import Link from "next/link"
-import { CalendarDays, Camera, LibraryBig, Mail, Plus, Quote, Sparkles } from "lucide-react"
+import { CalendarDays, Camera, LibraryBig, Mail, Plus, Quote, Sparkles, Timeline, WalletCards } from "lucide-react"
 import { ActivityFeed } from "@/components/activity-feed"
+import { AddLoveLetterModal } from "@/components/add-love-letter-modal"
 import { AddMemoryModal } from "@/components/add-memory-modal"
 import { AddPhotoModal } from "@/components/add-photo-modal"
 import { AddQuoteModal } from "@/components/add-quote-modal"
@@ -8,7 +9,6 @@ import { DashboardStats } from "@/components/dashboard-stats"
 import { FloatingHearts } from "@/components/floating-hearts"
 import { LoveCalendar } from "@/components/love-calendar"
 import { LoveCounter } from "@/components/love-counter"
-import { LoveLetterGenerator } from "@/components/love-letter-generator"
 import { LoveQuoteWidget } from "@/components/love-quote-widget"
 import { NavigationHeader } from "@/components/navigation-header"
 import { RecentMemories } from "@/components/recent-memories"
@@ -53,11 +53,25 @@ const destinations = [
     accent: "text-primary",
   },
   {
+    href: "/timeline",
+    title: "Línea",
+    description: "El recorrido completo de lo que han guardado.",
+    icon: Timeline,
+    accent: "text-secondary",
+  },
+  {
     href: "/love-letters",
     title: "Cartas",
     description: "Mensajes largos para leer despacio.",
     icon: Mail,
     accent: "text-accent",
+  },
+  {
+    href: "/finances",
+    title: "Finanzas",
+    description: "Ingresos, gastos y balance como un solo equipo.",
+    icon: WalletCards,
+    accent: "text-secondary",
   },
 ]
 
@@ -92,12 +106,12 @@ export default function HomePage() {
                   Subir Foto
                 </Button>
               </AddPhotoModal>
-              <LoveLetterGenerator>
+              <AddLoveLetterModal>
                 <Button variant="ghost" className="rounded-full text-secondary hover:bg-secondary/10 hover:text-secondary">
                   <Mail data-icon="inline-start" />
                   Carta
                 </Button>
-              </LoveLetterGenerator>
+              </AddLoveLetterModal>
             </div>
           </div>
 

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { CalendarDays, Camera, Heart, Home, LibraryBig, Mail, Quote, Sparkles } from "lucide-react"
+import { CalendarDays, Camera, Heart, Home, LibraryBig, Mail, Quote, Sparkles, Timeline, WalletCards } from "lucide-react"
 import { UserProfile } from "@/components/user-profile"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -13,8 +13,10 @@ const navItems = [
   { href: "/photos", label: "Fotos", icon: Camera },
   { href: "/quotes", label: "Frases", icon: Quote },
   { href: "/special-days", label: "Fechas", icon: Sparkles },
+  { href: "/timeline", label: "Línea", icon: Timeline },
   { href: "/calendar", label: "Calendario", icon: CalendarDays },
   { href: "/love-letters", label: "Cartas", icon: Mail },
+  { href: "/finances", label: "Finanzas", icon: WalletCards },
 ]
 
 export function NavigationHeader() {

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import {
   Dialog,
@@ -41,15 +41,21 @@ export function AddMemoryModal({ children, memory }: AddMemoryModalProps) {
   const [isSaving, setIsSaving] = useState(false)
   const isEditing = Boolean(memory)
 
-  useEffect(() => {
-    if (!open) return
-
+  const syncFormFromMemory = () => {
     setTitle(memory?.title ?? "")
     setDescription(memory?.description ?? "")
     setDate(memory ? new Date(`${memory.date}T00:00:00`) : undefined)
     setTags(memory?.tags ?? [])
     setNewTag("")
-  }, [memory, open])
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      syncFormFromMemory()
+    }
+
+    setOpen(nextOpen)
+  }
 
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -109,7 +115,7 @@ export function AddMemoryModal({ children, memory }: AddMemoryModalProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px] bg-card/95 backdrop-blur-sm border-primary/20">
         <DialogHeader>
