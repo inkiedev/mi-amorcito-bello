@@ -153,7 +153,7 @@ export default function PhotosPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredPhotos.map((photo) => (
+            {filteredPhotos.map((photo, index) => (
               <Card
                 key={photo.id}
                 className="romantic-card group overflow-hidden p-0"
@@ -164,7 +164,8 @@ export default function PhotosPage() {
                     alt={photo.title}
                     fill
                     sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    unoptimized
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchPriority={index === 0 ? "high" : "auto"}
                     className="object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute top-2 right-2">

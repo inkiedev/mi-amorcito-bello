@@ -39,15 +39,30 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>("")
+  const [uploadStatus, setUploadStatus] = useState("")
+  const [optimizationSummary, setOptimizationSummary] = useState("")
+  const [canPreviewFile, setCanPreviewFile] = useState(true)
   const isEditing = Boolean(photo)
 
   useEffect(() => {
     return () => {
-      if (previewUrl) {
+      if (previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl)
       }
     }
   }, [previewUrl])
+
+  const formatLocalFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`
+    const kilobytes = bytes / 1024
+    if (kilobytes < 1024) return `${kilobytes.toFixed(0)} KB`
+
+    return `${(kilobytes / 1024).toFixed(2)} MB`
+  }
+
+  const isHeicLikeFile = (selectedFile: File) => {
+    return /image\/hei(c|f)/i.test(selectedFile.type) || /\.(hei(c|f))$/i.test(selectedFile.name)
+  }
 
   const syncFormFromPhoto = () => {
     setTitle(photo?.title ?? "")
@@ -56,6 +71,9 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
     setTags(photo?.tags.join(", ") ?? "")
     setFile(null)
     setPreviewUrl(photo?.image_url ?? "")
+    setUploadStatus("")
+    setOptimizationSummary("")
+    setCanPreviewFile(true)
   }
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -69,9 +87,16 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
+      if (previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl)
+      }
+
       setFile(selectedFile)
       const url = URL.createObjectURL(selectedFile)
       setPreviewUrl(url)
+      setCanPreviewFile(!isHeicLikeFile(selectedFile))
+      setOptimizationSummary(`Original: ${formatLocalFileSize(selectedFile.size)}. La app la comprimirá antes de subir.`)
+      setUploadStatus("")
     }
   }
 
@@ -86,12 +111,20 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
       let imageUrl = photo?.image_url
 
       if (file) {
-        // Generate unique filename
-        const fileExt = file.name.split('.').pop()
+        setUploadStatus("Optimizando imagen...")
+        const { optimizeImageForUpload, formatFileSize } = await import("@/lib/images/compression")
+        const optimized = await optimizeImageForUpload(file)
+        const fileExt = optimized.file.name.split('.').pop() ?? "webp"
         const fileName = `${user.id}/${Date.now()}.${fileExt}`
+        const savedPercent = Math.max(0, Math.round((1 - optimized.optimizedSize / optimized.originalSize) * 100))
+
+        setOptimizationSummary(
+          `Optimizada: ${formatFileSize(optimized.originalSize)} → ${formatFileSize(optimized.optimizedSize)} (${savedPercent}% menos).`,
+        )
+        setUploadStatus("Subiendo imagen optimizada...")
         
         // Upload photo to Supabase Storage
-        await uploadPhoto(file, fileName)
+        await uploadPhoto(optimized.file, fileName)
         
         // Get public URL
         imageUrl = await getPhotoUrl(fileName)
@@ -127,13 +160,16 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
       setTags("")
       setFile(null)
       setPreviewUrl("")
+      setUploadStatus("")
+      setOptimizationSummary("")
       setOpen(false)
       notifyRomanticDataChanged()
     } catch (error) {
       console.error('Error uploading photo:', error)
-      alert('Error al subir la foto. Intenta de nuevo.')
+      alert('Error al optimizar o subir la foto. Si es HEIC y tu navegador no lo soporta, conviértela a JPG e intenta de nuevo.')
     } finally {
       setIsUploading(false)
+      setUploadStatus("")
     }
   }
 
@@ -154,12 +190,22 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
             <Input
               id="photo"
               type="file"
-              accept="image/*"
+              accept="image/*,.heic,.heif"
               onChange={handleFileChange}
               required={!isEditing}
               className="border-secondary/20 focus:border-secondary"
             />
-            {previewUrl && (
+            {optimizationSummary && (
+              <p className="rounded-md border border-secondary/15 bg-secondary/5 px-3 py-2 text-xs text-muted-foreground">
+                {optimizationSummary}
+              </p>
+            )}
+            {uploadStatus && (
+              <p className="rounded-md border border-primary/15 bg-primary/5 px-3 py-2 text-xs text-primary">
+                {uploadStatus}
+              </p>
+            )}
+            {previewUrl && canPreviewFile ? (
               <div className="relative mt-2 h-32 w-full overflow-hidden rounded-md border border-secondary/20">
                 <Image
                   src={previewUrl}
@@ -169,7 +215,11 @@ export function AddPhotoModal({ children, photo }: AddPhotoModalProps) {
                   className="object-cover"
                 />
               </div>
-            )}
+            ) : previewUrl ? (
+              <p className="rounded-md border border-secondary/15 bg-secondary/5 px-3 py-2 text-xs text-muted-foreground">
+                HEIC/HEIF seleccionado. Se convertirá al subir; es normal si no aparece vista previa en este navegador.
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">

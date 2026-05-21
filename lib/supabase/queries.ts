@@ -219,7 +219,11 @@ export async function getLoveLetters() {
 export async function uploadPhoto(file: File, fileName: string) {
   const { data, error } = await supabase.storage
     .from('photos')
-    .upload(fileName, file)
+    .upload(fileName, file, {
+      cacheControl: '31536000',
+      contentType: file.type,
+      upsert: false,
+    })
 
   if (error) throw error
   return data
