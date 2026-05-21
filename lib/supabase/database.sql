@@ -64,11 +64,27 @@ create table if not exists public.joint_finance_entries (
   updated_at timestamptz default now()
 );
 
+create table if not exists public.taste_entries (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  type text not null check (type in ('movie', 'series', 'restaurant', 'food', 'drink', 'place', 'activity', 'other')),
+  rating numeric(3, 1) not null check (rating >= 0 and rating <= 10),
+  entry_date date not null,
+  location text,
+  notes text,
+  tags text[] default array[]::text[],
+  would_repeat boolean default true,
+  created_by uuid not null references public.profiles(id) on delete cascade,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
 alter table public.profiles enable row level security;
 alter table public.romantic_memories enable row level security;
 alter table public.special_days enable row level security;
 alter table public.quotes enable row level security;
 alter table public.joint_finance_entries enable row level security;
+alter table public.taste_entries enable row level security;
 
 drop policy if exists "Users can view own profile" on public.profiles;
 create policy "Users can view own profile"
@@ -175,6 +191,27 @@ create policy "Authenticated users can delete all finance entries"
   on public.joint_finance_entries for delete to authenticated
   using (true);
 
+drop policy if exists "Authenticated users can view all taste entries" on public.taste_entries;
+create policy "Authenticated users can view all taste entries"
+  on public.taste_entries for select to authenticated
+  using (true);
+
+drop policy if exists "Users can insert taste entries" on public.taste_entries;
+create policy "Users can insert taste entries"
+  on public.taste_entries for insert to authenticated
+  with check (auth.uid() = created_by);
+
+drop policy if exists "Authenticated users can update all taste entries" on public.taste_entries;
+create policy "Authenticated users can update all taste entries"
+  on public.taste_entries for update to authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "Authenticated users can delete all taste entries" on public.taste_entries;
+create policy "Authenticated users can delete all taste entries"
+  on public.taste_entries for delete to authenticated
+  using (true);
+
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -253,12 +290,20 @@ create trigger update_joint_finance_entries_updated_at
   before update on public.joint_finance_entries
   for each row execute function public.update_updated_at_column();
 
+drop trigger if exists update_taste_entries_updated_at on public.taste_entries;
+create trigger update_taste_entries_updated_at
+  before update on public.taste_entries
+  for each row execute function public.update_updated_at_column();
+
 create index if not exists romantic_memories_date_idx on public.romantic_memories(date desc);
 create index if not exists romantic_memories_type_idx on public.romantic_memories(type);
 create index if not exists special_days_date_idx on public.special_days(date);
 create index if not exists quotes_date_idx on public.quotes(date desc);
 create index if not exists joint_finance_entries_entry_date_idx on public.joint_finance_entries(entry_date desc);
 create index if not exists joint_finance_entries_type_idx on public.joint_finance_entries(type);
+create index if not exists taste_entries_entry_date_idx on public.taste_entries(entry_date desc);
+create index if not exists taste_entries_type_idx on public.taste_entries(type);
+create index if not exists taste_entries_rating_idx on public.taste_entries(rating desc);
 
 insert into storage.buckets (id, name, public)
 values ('photos', 'photos', true)

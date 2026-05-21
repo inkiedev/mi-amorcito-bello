@@ -179,6 +179,50 @@ export interface Database {
           updated_at?: string
         }
       }
+      taste_entries: {
+        Row: {
+          id: string
+          title: string
+          type: "movie" | "series" | "restaurant" | "food" | "drink" | "place" | "activity" | "other"
+          rating: number
+          entry_date: string
+          location: string | null
+          notes: string | null
+          tags: string[]
+          would_repeat: boolean
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          type: "movie" | "series" | "restaurant" | "food" | "drink" | "place" | "activity" | "other"
+          rating: number
+          entry_date: string
+          location?: string | null
+          notes?: string | null
+          tags?: string[]
+          would_repeat?: boolean
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          type?: "movie" | "series" | "restaurant" | "food" | "drink" | "place" | "activity" | "other"
+          rating?: number
+          entry_date?: string
+          location?: string | null
+          notes?: string | null
+          tags?: string[]
+          would_repeat?: boolean
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -201,18 +245,21 @@ export type RomanticMemory = Database['public']['Tables']['romantic_memories']['
 export type SpecialDay = Database['public']['Tables']['special_days']['Row']
 export type Quote = Database['public']['Tables']['quotes']['Row']
 export type FinanceEntry = Database['public']['Tables']['joint_finance_entries']['Row']
+export type TasteEntry = Database['public']['Tables']['taste_entries']['Row']
 
 export type InsertProfile = Database['public']['Tables']['profiles']['Insert']
 export type InsertRomanticMemory = Database['public']['Tables']['romantic_memories']['Insert']
 export type InsertSpecialDay = Database['public']['Tables']['special_days']['Insert']
 export type InsertQuote = Database['public']['Tables']['quotes']['Insert']
 export type InsertFinanceEntry = Database['public']['Tables']['joint_finance_entries']['Insert']
+export type InsertTasteEntry = Database['public']['Tables']['taste_entries']['Insert']
 
 export type UpdateProfile = Database['public']['Tables']['profiles']['Update']
 export type UpdateRomanticMemory = Database['public']['Tables']['romantic_memories']['Update']
 export type UpdateSpecialDay = Database['public']['Tables']['special_days']['Update']
 export type UpdateQuote = Database['public']['Tables']['quotes']['Update']
 export type UpdateFinanceEntry = Database['public']['Tables']['joint_finance_entries']['Update']
+export type UpdateTasteEntry = Database['public']['Tables']['taste_entries']['Update']
 
 // Legacy interfaces for backward compatibility
 export interface User {

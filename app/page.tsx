@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CalendarDays, Camera, LibraryBig, Mail, Plus, Quote, Sparkles, Timeline, WalletCards } from "lucide-react"
+import { CalendarDays, Camera, LibraryBig, Mail, Plus, Quote, Sparkles, Star, Timeline, WalletCards } from "lucide-react"
 import { ActivityFeed } from "@/components/activity-feed"
 import { AddLoveLetterModal } from "@/components/add-love-letter-modal"
 import { AddMemoryModal } from "@/components/add-memory-modal"
@@ -65,6 +65,13 @@ const destinations = [
     description: "Mensajes largos para leer despacio.",
     icon: Mail,
     accent: "text-accent",
+  },
+  {
+    href: "/tastes",
+    title: "Gustos",
+    description: "Películas, comida y lugares con nota honesta.",
+    icon: Star,
+    accent: "text-secondary",
   },
   {
     href: "/finances",

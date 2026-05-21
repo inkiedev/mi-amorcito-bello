@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { CalendarDays, Camera, Heart, Home, LibraryBig, Mail, Quote, Sparkles, Timeline, WalletCards } from "lucide-react"
+import { CalendarDays, Camera, Heart, Home, LibraryBig, Mail, Quote, Sparkles, Star, Timeline, WalletCards } from "lucide-react"
 import { UserProfile } from "@/components/user-profile"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -16,6 +16,7 @@ const navItems = [
   { href: "/timeline", label: "Línea", icon: Timeline },
   { href: "/calendar", label: "Calendario", icon: CalendarDays },
   { href: "/love-letters", label: "Cartas", icon: Mail },
+  { href: "/tastes", label: "Gustos", icon: Star },
   { href: "/finances", label: "Finanzas", icon: WalletCards },
 ]
 

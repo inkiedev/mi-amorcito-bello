@@ -7,11 +7,14 @@ import type {
   InsertSpecialDay, 
   InsertQuote,
   InsertFinanceEntry,
+  InsertTasteEntry,
   UpdateRomanticMemory,
   UpdateSpecialDay,
   UpdateQuote,
   UpdateFinanceEntry,
-  FinanceEntry
+  UpdateTasteEntry,
+  FinanceEntry,
+  TasteEntry
 } from '@/lib/types'
 
 // Romantic Memories
@@ -275,6 +278,50 @@ export async function updateFinanceEntry(id: string, updates: UpdateFinanceEntry
 export async function deleteFinanceEntry(id: string) {
   const { error } = await supabase
     .from('joint_finance_entries')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Taste Log
+export async function getTasteEntries() {
+  const { data, error } = await supabase
+    .from('taste_entries')
+    .select('*')
+    .order('entry_date', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data as TasteEntry[]
+}
+
+export async function createTasteEntry(entry: InsertTasteEntry) {
+  const { data, error } = await supabase
+    .from('taste_entries')
+    .insert(entry)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as TasteEntry
+}
+
+export async function updateTasteEntry(id: string, updates: UpdateTasteEntry) {
+  const { data, error } = await supabase
+    .from('taste_entries')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as TasteEntry
+}
+
+export async function deleteTasteEntry(id: string) {
+  const { error } = await supabase
+    .from('taste_entries')
     .delete()
     .eq('id', id)
 

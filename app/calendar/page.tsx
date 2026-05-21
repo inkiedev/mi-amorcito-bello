@@ -5,7 +5,7 @@ import { NavigationHeader } from "@/components/navigation-header"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { CalendarClock, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { getMemories, getSpecialDays, getQuotes } from "@/lib/supabase/queries"
 import type { RomanticMemory, SpecialDay, Quote } from "@/lib/types"
 import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
@@ -62,6 +62,18 @@ export default function CalendarPage() {
     "Diciembre",
   ]
 
+  const currentYear = new Date().getFullYear()
+  const availableYears = Array.from(
+    new Set([
+      currentYear - 1,
+      currentYear,
+      currentYear + 1,
+      ...memories.map((memory) => new Date(`${memory.date}T00:00:00`).getFullYear()),
+      ...quotes.map((quote) => new Date(`${quote.date}T00:00:00`).getFullYear()),
+      ...specialDays.map((day) => new Date(`${day.date}T00:00:00`).getFullYear()),
+    ]),
+  ).sort((a, b) => b - a)
+
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
   }
@@ -74,8 +86,8 @@ export default function CalendarPage() {
     return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
   }
 
-  const getContentForDate = (day: number) => {
-    const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), day)
+  const getContentForDate = (date: Date) => {
+    const dateKey = formatDateKey(date.getFullYear(), date.getMonth(), date.getDate())
     const content: CalendarContentItem[] = []
     
     // Add memories for this date
@@ -95,7 +107,7 @@ export default function CalendarPage() {
       const specialDate = new Date(specialDay.date)
       if (specialDay.is_recurring) {
         // For recurring events, check if month and day match
-        const currentYear = currentDate.getFullYear()
+        const currentYear = date.getFullYear()
         const recurringDate = new Date(currentYear, specialDate.getMonth(), specialDate.getDate())
         if (formatDateKey(recurringDate.getFullYear(), recurringDate.getMonth(), recurringDate.getDate()) === dateKey) {
           content.push({
@@ -140,6 +152,32 @@ export default function CalendarPage() {
       }
       return newDate
     })
+    setSelectedDate(null)
+  }
+
+  const navigateYear = (direction: "prev" | "next") => {
+    setCurrentDate((prev) => {
+      const newDate = new Date(prev)
+      newDate.setFullYear(prev.getFullYear() + (direction === "prev" ? -1 : 1))
+      return newDate
+    })
+    setSelectedDate(null)
+  }
+
+  const goToToday = () => {
+    const today = new Date()
+    setCurrentDate(today)
+    setSelectedDate(today)
+  }
+
+  const setCalendarMonth = (month: number) => {
+    setCurrentDate((prev) => new Date(prev.getFullYear(), month, 1))
+    setSelectedDate(null)
+  }
+
+  const setCalendarYear = (year: number) => {
+    setCurrentDate((prev) => new Date(year, prev.getMonth(), 1))
+    setSelectedDate(null)
   }
 
   const selectDate = (day: number) => {
@@ -159,9 +197,11 @@ export default function CalendarPage() {
 
     // Días del mes
     for (let day = 1; day <= daysInMonth; day++) {
-      const content = getContentForDate(day)
+      const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+      const content = getContentForDate(dayDate)
       const isToday =
-        new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString()
+        new Date().toDateString() === dayDate.toDateString()
+      const isSelected = selectedDate?.toDateString() === dayDate.toDateString()
 
       days.push(
         <div
@@ -171,6 +211,7 @@ export default function CalendarPage() {
             h-12 flex items-center justify-center cursor-pointer rounded-lg transition-all duration-300 relative
             hover:bg-primary/10 hover:scale-105
             ${isToday ? "bg-primary text-primary-foreground font-bold" : ""}
+            ${isSelected ? "ring-2 ring-secondary ring-offset-2 ring-offset-background" : ""}
             ${content ? "bg-accent/20 border-2 border-accent/30" : ""}
           `}
         >
@@ -187,7 +228,7 @@ export default function CalendarPage() {
     return days
   }
 
-  const selectedDateContent = selectedDate ? getContentForDate(selectedDate.getDate()) : null
+  const selectedDateContent = selectedDate ? getContentForDate(selectedDate) : null
 
   return (
     <div className="romantic-page min-h-screen">
@@ -203,26 +244,87 @@ export default function CalendarPage() {
           <div className="lg:col-span-2">
             <Card className="glass-panel">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigateMonth("prev")}
-                    className="hover:bg-primary/10"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <CardTitle className="script-title text-3xl text-foreground">
-                    {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigateMonth("next")}
-                    className="hover:bg-primary/10"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateYear("prev")}
+                        className="hover:bg-primary/10"
+                        aria-label="Año anterior"
+                      >
+                        <ChevronsLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateMonth("prev")}
+                        className="hover:bg-primary/10"
+                        aria-label="Mes anterior"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <CardTitle className="script-title text-center text-3xl text-foreground">
+                      {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                    </CardTitle>
+
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateMonth("next")}
+                        className="hover:bg-primary/10"
+                        aria-label="Mes siguiente"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigateYear("next")}
+                        className="hover:bg-primary/10"
+                        aria-label="Año siguiente"
+                      >
+                        <ChevronsRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-[1fr_0.75fr_auto]">
+                    <select
+                      value={currentDate.getMonth()}
+                      onChange={(event) => setCalendarMonth(Number(event.target.value))}
+                      className="h-10 rounded-md border border-primary/20 bg-background/60 px-3 text-sm text-foreground shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/40"
+                      aria-label="Seleccionar mes"
+                    >
+                      {monthNames.map((month, index) => (
+                        <option key={month} value={index}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={currentDate.getFullYear()}
+                      onChange={(event) => setCalendarYear(Number(event.target.value))}
+                      className="h-10 rounded-md border border-primary/20 bg-background/60 px-3 text-sm text-foreground shadow-xs outline-none focus:border-ring focus:ring-2 focus:ring-ring/40"
+                      aria-label="Seleccionar año"
+                    >
+                      {availableYears.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <Button variant="outline" className="bg-transparent" onClick={goToToday}>
+                      <CalendarClock data-icon="inline-start" />
+                      Hoy
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
