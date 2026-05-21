@@ -18,12 +18,12 @@ export function UserProfile() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 hover:bg-primary/10">
-          <span className="text-2xl">{user.avatar}</span>
-          <span className="font-medium">{user.name}</span>
+        <Button variant="ghost" className="rounded-full border border-foreground/10 bg-foreground/[0.04] hover:bg-foreground/[0.08]">
+          <span className="text-lg">{user.avatar || "♥"}</span>
+          <span className="max-w-28 truncate font-medium">{user.name}</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent align="end" className="w-56 glass-panel">
         <div className="px-2 py-1.5">
           <p className="text-sm font-medium">{user.name}</p>
           <p className="text-xs text-muted-foreground">

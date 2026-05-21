@@ -6,9 +6,12 @@ import type {
   InsertRomanticMemory, 
   InsertSpecialDay, 
   InsertQuote,
+  InsertFinanceEntry,
   UpdateRomanticMemory,
   UpdateSpecialDay,
-  UpdateQuote
+  UpdateQuote,
+  UpdateFinanceEntry,
+  FinanceEntry
 } from '@/lib/types'
 
 // Romantic Memories
@@ -63,6 +66,17 @@ export async function deleteMemory(id: string) {
     .eq('id', id)
 
   if (error) throw error
+}
+
+function getPhotoStoragePath(imageUrl?: string | null) {
+  if (!imageUrl) return null
+
+  const marker = "/storage/v1/object/public/photos/"
+  const markerIndex = imageUrl.indexOf(marker)
+
+  if (markerIndex === -1) return null
+
+  return decodeURIComponent(imageUrl.slice(markerIndex + marker.length))
 }
 
 // Special Days
@@ -123,12 +137,14 @@ export async function getRandomQuote() {
   const { data, error } = await supabase
     .from('quotes')
     .select('*')
-    .order('RANDOM()')
-    .limit(1)
-    .single()
+    .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data as Quote
+
+  const quotes = data as Quote[]
+  if (quotes.length === 0) return null
+
+  return quotes[Math.floor(Math.random() * quotes.length)]
 }
 
 export async function createQuote(quote: InsertQuote) {
@@ -176,6 +192,30 @@ export async function getPhotos() {
   return data as RomanticMemory[]
 }
 
+export async function deletePhoto(id: string, imageUrl?: string | null) {
+  await deleteMemory(id)
+
+  const storagePath = getPhotoStoragePath(imageUrl)
+
+  if (storagePath) {
+    const { error } = await supabase.storage.from('photos').remove([storagePath])
+    if (error) {
+      console.warn('Photo record deleted, but storage cleanup failed:', error)
+    }
+  }
+}
+
+export async function getLoveLetters() {
+  const { data, error } = await supabase
+    .from('romantic_memories')
+    .select('*')
+    .contains('tags', ['carta'])
+    .order('date', { ascending: false })
+
+  if (error) throw error
+  return data as RomanticMemory[]
+}
+
 export async function uploadPhoto(file: File, fileName: string) {
   const { data, error } = await supabase.storage
     .from('photos')
@@ -191,6 +231,50 @@ export async function getPhotoUrl(path: string) {
     .getPublicUrl(path)
 
   return data.publicUrl
+}
+
+// Joint Finances
+export async function getFinanceEntries() {
+  const { data, error } = await supabase
+    .from('joint_finance_entries')
+    .select('*')
+    .order('entry_date', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data as FinanceEntry[]
+}
+
+export async function createFinanceEntry(entry: InsertFinanceEntry) {
+  const { data, error } = await supabase
+    .from('joint_finance_entries')
+    .insert(entry)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as FinanceEntry
+}
+
+export async function updateFinanceEntry(id: string, updates: UpdateFinanceEntry) {
+  const { data, error } = await supabase
+    .from('joint_finance_entries')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as FinanceEntry
+}
+
+export async function deleteFinanceEntry(id: string) {
+  const { error } = await supabase
+    .from('joint_finance_entries')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
 }
 
 // Statistics

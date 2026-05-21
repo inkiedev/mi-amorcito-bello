@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
 import { supabase } from "@/lib/supabase/client"
 import type { User as AuthUser } from "@supabase/supabase-js"
 import type { Profile } from "@/lib/types"
@@ -16,7 +16,7 @@ interface AuthContextType {
   user: User | null
   profile: Profile | null
   login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
+  logout: () => Promise<void>
   isLoading: boolean
 }
 
@@ -27,33 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        handleAuthUser(session.user)
-      } else {
-        setIsLoading(false)
-      }
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        handleAuthUser(session.user)
-      } else {
-        setUser(null)
-        setProfile(null)
-        setIsLoading(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const handleAuthUser = async (authUser: AuthUser) => {
+  const handleAuthUser = useCallback(async (authUser: AuthUser) => {
     try {
       // Get user profile from database
       const { data: profileData, error } = await supabase
@@ -82,7 +56,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        void handleAuthUser(session.user)
+      } else {
+        setIsLoading(false)
+      }
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await handleAuthUser(session.user)
+      } else {
+        setUser(null)
+        setProfile(null)
+        setIsLoading(false)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [handleAuthUser])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true)

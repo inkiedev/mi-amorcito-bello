@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import {
   Dialog,
@@ -22,12 +22,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, X } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
+import type { RomanticMemory } from "@/lib/types"
 
 interface AddMemoryModalProps {
   children: React.ReactNode
+  memory?: RomanticMemory
 }
 
-export function AddMemoryModal({ children }: AddMemoryModalProps) {
+export function AddMemoryModal({ children, memory }: AddMemoryModalProps) {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
@@ -35,6 +38,18 @@ export function AddMemoryModal({ children }: AddMemoryModalProps) {
   const [date, setDate] = useState<Date>()
   const [tags, setTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
+  const isEditing = Boolean(memory)
+
+  useEffect(() => {
+    if (!open) return
+
+    setTitle(memory?.title ?? "")
+    setDescription(memory?.description ?? "")
+    setDate(memory ? new Date(`${memory.date}T00:00:00`) : undefined)
+    setTags(memory?.tags ?? [])
+    setNewTag("")
+  }, [memory, open])
 
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -52,19 +67,31 @@ export function AddMemoryModal({ children }: AddMemoryModalProps) {
     
     if (!user || !date) return
 
+    setIsSaving(true)
+
     try {
-      const { createMemory } = await import("@/lib/supabase/queries")
-      
-      await createMemory({
+      const { createMemory, updateMemory } = await import("@/lib/supabase/queries")
+      const payload = {
         title,
         description,
         date: date.toISOString().split('T')[0],
         type: 'memory',
         content: description,
         tags,
-        created_by: user.id,
         is_favorite: false
-      })
+      } as const
+
+      if (memory) {
+        await updateMemory(memory.id, {
+          ...payload,
+          is_favorite: memory.is_favorite,
+        })
+      } else {
+        await createMemory({
+          ...payload,
+          created_by: user.id,
+        })
+      }
 
       // Resetear formulario
       setTitle("")
@@ -72,12 +99,12 @@ export function AddMemoryModal({ children }: AddMemoryModalProps) {
       setDate(undefined)
       setTags([])
       setOpen(false)
-      
-      // Recargar página para mostrar nuevo recuerdo
-      window.location.reload()
+      notifyRomanticDataChanged()
     } catch (error) {
       console.error('Error creating memory:', error)
       alert('Error al guardar el recuerdo. Intenta de nuevo.')
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -87,7 +114,7 @@ export function AddMemoryModal({ children }: AddMemoryModalProps) {
       <DialogContent className="sm:max-w-[500px] bg-card/95 backdrop-blur-sm border-primary/20">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-primary">
-            💭 <span>Crear Nuevo Recuerdo</span>
+            💭 <span>{isEditing ? "Editar Recuerdo" : "Crear Nuevo Recuerdo"}</span>
           </DialogTitle>
           <DialogDescription>Guarda un momento especial que quieras recordar para siempre</DialogDescription>
         </DialogHeader>
@@ -131,7 +158,7 @@ export function AddMemoryModal({ children }: AddMemoryModalProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                <Calendar mode="single" selected={date} onSelect={setDate} />
               </PopoverContent>
             </Popover>
           </div>
@@ -174,12 +201,13 @@ export function AddMemoryModal({ children }: AddMemoryModalProps) {
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              disabled={isSaving}
               className="flex-1 border-muted hover:bg-muted/10 bg-transparent"
             >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-              💕 Guardar Recuerdo
+            <Button type="submit" disabled={isSaving} className="flex-1 bg-primary hover:bg-primary/90">
+              {isSaving ? "Guardando..." : isEditing ? "Guardar Cambios" : "💕 Guardar Recuerdo"}
             </Button>
           </div>
         </form>

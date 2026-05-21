@@ -20,6 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
 
 interface AddQuoteModalProps {
   children: React.ReactNode
@@ -56,9 +57,7 @@ export function AddQuoteModal({ children }: AddQuoteModalProps) {
       setContext("")
       setDate(new Date())
       setOpen(false)
-      
-      // Recargar página para mostrar nueva frase
-      window.location.reload()
+      notifyRomanticDataChanged()
     } catch (error) {
       console.error('Error creating quote:', error)
       alert('Error al guardar la frase. Intenta de nuevo.')
@@ -125,7 +124,7 @@ export function AddQuoteModal({ children }: AddQuoteModalProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} initialFocus />
+                <Calendar mode="single" selected={date} onSelect={(date) => date && setDate(date)} />
               </PopoverContent>
             </Popover>
           </div>

@@ -1,116 +1,146 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
 import { NavigationHeader } from "@/components/navigation-header"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { getMemories, getQuotes, getSpecialDays } from "@/lib/supabase/queries"
+import type { Quote, RomanticMemory, SpecialDay } from "@/lib/types"
+
+type TimelineEvent = {
+  id: string
+  title: string
+  date: string
+  description: string
+  type: string
+  icon: string
+}
 
 export default function TimelinePage() {
-  // Datos simulados de la línea de tiempo
-  const timelineEvents = [
-    {
-      id: "1",
-      title: "Nos conocimos",
-      date: "2024-01-15",
-      description: "El día que nuestros caminos se cruzaron por primera vez",
-      type: "meeting",
-      icon: "⭐",
-    },
-    {
-      id: "2",
-      title: "Primera cita oficial",
-      date: "2024-01-22",
-      description: "Nuestra primera cita real, llena de nervios y emoción",
-      type: "date",
-      icon: "💕",
-    },
-    {
-      id: "3",
-      title: "Primer beso",
-      date: "2024-02-01",
-      description: "El momento mágico que selló nuestro amor",
-      type: "milestone",
-      icon: "💋",
-    },
-    {
-      id: "4",
-      title: "Dijimos 'Te amo'",
-      date: "2024-02-20",
-      description: "Las palabras más importantes de nuestras vidas",
-      type: "milestone",
-      icon: "💖",
-    },
-    {
-      id: "5",
-      title: "Oficialmente novios",
-      date: "2024-03-15",
-      description: "El día que decidimos ser oficialmente una pareja",
-      type: "relationship",
-      icon: "👫",
-    },
-  ]
+  const dataVersion = useRomanticDataVersion()
+  const [memories, setMemories] = useState<RomanticMemory[]>([])
+  const [quotes, setQuotes] = useState<Quote[]>([])
+  const [specialDays, setSpecialDays] = useState<SpecialDay[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTimelineData = async () => {
+      try {
+        const [memoriesData, quotesData, specialDaysData] = await Promise.all([
+          getMemories(),
+          getQuotes(),
+          getSpecialDays(),
+        ])
+
+        setMemories(memoriesData)
+        setQuotes(quotesData)
+        setSpecialDays(specialDaysData)
+      } catch (error) {
+        console.error("Error fetching timeline data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchTimelineData()
+  }, [dataVersion])
+
+  const timelineEvents = useMemo<TimelineEvent[]>(() => {
+    const memoryEvents = memories.map((memory) => ({
+      id: memory.id,
+      title: memory.title,
+      date: memory.date,
+      description: memory.description,
+      type: memory.tags.includes("carta") ? "carta" : memory.type,
+      icon: memory.tags.includes("carta") ? "💌" : memory.type === "photo" ? "📸" : "💭",
+    }))
+
+    const quoteEvents = quotes.map((quote) => ({
+      id: quote.id,
+      title: quote.context || "Frase guardada",
+      date: quote.date,
+      description: quote.text,
+      type: "frase",
+      icon: "💬",
+    }))
+
+    const specialDayEvents = specialDays.map((day) => ({
+      id: day.id,
+      title: day.title,
+      date: day.date,
+      description: day.description,
+      type: "día especial",
+      icon: "🎉",
+    }))
+
+    return [...memoryEvents, ...quoteEvents, ...specialDayEvents].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    )
+  }, [memories, quotes, specialDays])
 
   return (
     <div className="min-h-screen bg-background">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header de la página */}
-        <div className="text-center mb-12">
-          <div className="text-6xl mb-4 animate-float">📅</div>
-          <h1 className="font-serif text-4xl font-bold text-secondary-foreground mb-2">Línea de Tiempo</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            El viaje de nuestro amor a través del tiempo, cada momento importante de nuestra historia
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        <div className="mb-12 text-center">
+          <div className="mb-4 text-6xl animate-float">📅</div>
+          <h1 className="mb-2 font-serif text-4xl font-bold text-secondary-foreground">Línea de Tiempo</h1>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Un recorrido real por los momentos que ustedes han guardado.
           </p>
         </div>
 
-        {/* Línea de tiempo */}
-        <div className="relative">
-          {/* Línea vertical */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-secondary to-accent"></div>
-
-          <div className="space-y-8">
-            {timelineEvents.map((event, index) => (
-              <div key={event.id} className="relative flex items-start gap-6">
-                {/* Punto en la línea */}
-                <div className="relative z-10 flex-shrink-0">
-                  <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-2xl animate-pulse-heart shadow-lg">
-                    {event.icon}
-                  </div>
-                </div>
-
-                {/* Contenido del evento */}
-                <Card className="flex-1 hover:shadow-lg transition-all duration-300 bg-card/50 backdrop-blur-sm border-primary/10">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-xl font-semibold text-primary mb-1">{event.title}</h3>
-                        <p className="text-sm text-muted-foreground">{event.date}</p>
-                      </div>
-                      <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary">
-                        {event.type}
-                      </Badge>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed">{event.description}</p>
-                  </CardContent>
-                </Card>
-              </div>
+        {isLoading ? (
+          <div className="flex flex-col gap-6">
+            {[1, 2, 3].map((item) => (
+              <Card key={item} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-24 rounded bg-muted/20" />
+                </CardContent>
+              </Card>
             ))}
           </div>
+        ) : timelineEvents.length === 0 ? (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-10 text-center">
+              <div className="mb-4 text-5xl animate-pulse-heart">💕</div>
+              <h2 className="mb-2 font-serif text-2xl text-primary">La línea de tiempo está esperando su primera escena</h2>
+              <p className="text-muted-foreground">Crea recuerdos, frases o días especiales y aparecerán aquí.</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="relative">
+            <div className="absolute bottom-0 left-8 top-0 w-0.5 bg-gradient-to-b from-primary via-secondary to-accent" />
 
-          {/* Punto final */}
-          <div className="relative flex items-center gap-6 mt-8">
-            <div className="relative z-10 flex-shrink-0">
-              <div className="w-16 h-16 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center text-2xl animate-sparkle shadow-lg">
-                ∞
-              </div>
+            <div className="flex flex-col gap-8">
+              {timelineEvents.map((event) => (
+                <div key={`${event.type}-${event.id}`} className="relative flex items-start gap-6">
+                  <div className="relative z-10 flex-shrink-0">
+                    <div className="flex size-16 items-center justify-center rounded-full bg-primary text-2xl shadow-lg animate-pulse-heart">
+                      {event.icon}
+                    </div>
+                  </div>
+
+                  <Card className="flex-1 border-primary/10 bg-card/60 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+                    <CardContent className="p-6">
+                      <div className="mb-3 flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="mb-1 text-xl font-semibold text-primary">{event.title}</h3>
+                          <p className="text-sm text-muted-foreground">{new Date(event.date).toLocaleDateString()}</p>
+                        </div>
+                        <Badge variant="outline" className="bg-primary/5 text-primary">
+                          {event.type}
+                        </Badge>
+                      </div>
+                      <p className="leading-relaxed text-muted-foreground">{event.description}</p>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
             </div>
-            <Card className="flex-1 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
-              <CardContent className="p-6 text-center">
-                <h3 className="text-xl font-serif font-semibold text-primary mb-2">Nuestro Futuro</h3>
-                <p className="text-muted-foreground">
-                  Infinitos momentos hermosos nos esperan en esta aventura de amor...
-                </p>
-              </CardContent>
-            </Card>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

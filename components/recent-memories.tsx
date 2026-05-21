@@ -7,8 +7,13 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { getRecentMemories } from "@/lib/supabase/queries"
 import type { RomanticMemory } from "@/lib/types"
+import { useAuth } from "@/contexts/auth-context"
+import { getCoupleAuthorLabel } from "@/lib/utils"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
 
 export function RecentMemories() {
+  const { user } = useAuth()
+  const dataVersion = useRomanticDataVersion()
   const [recentMemories, setRecentMemories] = useState<RomanticMemory[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -25,7 +30,7 @@ export function RecentMemories() {
     }
 
     fetchMemories()
-  }, [])
+  }, [dataVersion])
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -58,9 +63,9 @@ export function RecentMemories() {
   }
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+    <Card className="romantic-card rounded-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
+        <CardTitle className="script-title flex items-center gap-2 text-3xl text-foreground">
           ✨ <span>Recuerdos Recientes</span>
         </CardTitle>
       </CardHeader>
@@ -68,11 +73,11 @@ export function RecentMemories() {
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/20">
-                <div className="w-8 h-8 bg-muted/30 rounded animate-pulse"></div>
+              <div key={i} className="flex items-start gap-3 rounded-lg bg-foreground/[0.04] p-3">
+                <div className="size-8 animate-pulse rounded bg-muted/30"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted/30 rounded animate-pulse"></div>
-                  <div className="h-3 bg-muted/20 rounded animate-pulse w-3/4"></div>
+                  <div className="h-4 animate-pulse rounded bg-muted/30"></div>
+                  <div className="h-3 w-3/4 animate-pulse rounded bg-muted/20"></div>
                 </div>
               </div>
             ))}
@@ -88,7 +93,7 @@ export function RecentMemories() {
             {recentMemories.map((memory) => (
               <div
                 key={memory.id}
-                className="flex items-start gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors"
+                className="flex items-start gap-3 rounded-lg border border-foreground/10 bg-foreground/[0.04] p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-foreground/[0.07]"
               >
                 <div className="text-2xl">{getTypeIcon(memory.type)}</div>
                 <div className="flex-1 min-w-0">
@@ -101,7 +106,8 @@ export function RecentMemories() {
                   <p className="text-xs text-muted-foreground line-clamp-2">{memory.description}</p>
                   <div className="flex items-center justify-between mt-2">
                     <span className="text-xs text-muted-foreground">
-                      Por {memory.created_by} • {new Date(memory.date).toLocaleDateString()}
+                      Por {getCoupleAuthorLabel(memory.created_by, user?.id)} •{" "}
+                      {new Date(memory.date).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -111,7 +117,7 @@ export function RecentMemories() {
         )}
         <div className="mt-4">
           <Link href="/memories">
-            <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/10 bg-transparent">
+            <Button variant="outline" className="w-full rounded-full bg-transparent">
               Ver Todos los Recuerdos
             </Button>
           </Link>

@@ -20,10 +20,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
 
 interface AddSpecialDayModalProps {
   children: React.ReactNode
 }
+
+type SpecialDayCategory = "anniversary" | "first-time" | "milestone" | "celebration"
 
 export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
   const { user } = useAuth()
@@ -31,7 +34,7 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [date, setDate] = useState<Date>()
-  const [category, setCategory] = useState<"anniversary" | "first-time" | "milestone" | "celebration">("milestone")
+  const [category, setCategory] = useState<SpecialDayCategory>("milestone")
   const [isRecurring, setIsRecurring] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,16 +61,14 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
       setCategory("milestone")
       setIsRecurring(false)
       setOpen(false)
-      
-      // Recargar página para mostrar nuevo día especial
-      window.location.reload()
+      notifyRomanticDataChanged()
     } catch (error) {
       console.error('Error creating special day:', error)
       alert('Error al guardar el día especial. Intenta de nuevo.')
     }
   }
 
-  const categories = [
+  const categories: Array<{ value: SpecialDayCategory; label: string; description: string }> = [
     { value: "anniversary", label: "💕 Aniversario", description: "Fechas de aniversario importantes" },
     { value: "first-time", label: "⭐ Primera vez", description: "Primeras experiencias juntos" },
     { value: "milestone", label: "🏆 Hito", description: "Logros y momentos importantes" },
@@ -124,7 +125,7 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                <Calendar mode="single" selected={date} onSelect={setDate} />
               </PopoverContent>
             </Popover>
           </div>
@@ -138,7 +139,7 @@ export function AddSpecialDayModal({ children }: AddSpecialDayModalProps) {
                   type="button"
                   variant={category === cat.value ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setCategory(cat.value as any)}
+                  onClick={() => setCategory(cat.value)}
                   className={`text-left justify-start h-auto p-3 ${
                     category === cat.value 
                       ? "bg-primary text-primary-foreground" 

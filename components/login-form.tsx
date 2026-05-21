@@ -28,8 +28,8 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <Label htmlFor="email" className="text-sm font-medium">
           Email
         </Label>
@@ -40,10 +40,10 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="tu@amor.com"
           required
-          className="border-primary/20 focus:border-primary"
+          className="romantic-input h-11"
         />
       </div>
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         <Label htmlFor="password" className="text-sm font-medium">
           Contraseña
         </Label>
@@ -54,35 +54,27 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required
-          className="border-primary/20 focus:border-primary"
+          className="romantic-input h-11"
         />
       </div>
 
       {error && (
-        <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-lg border border-destructive/20">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <Button
         type="submit"
-        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+        className="h-11 w-full rounded-full bg-primary text-primary-foreground shadow-[0_0_38px_color-mix(in_oklch,var(--primary),transparent_68%)] hover:bg-primary/90"
         disabled={isLoading}
       >
-        {isLoading ? "Entrando..." : "Entrar a Nuestro Mundo 💕"}
+        {isLoading ? "Entrando..." : "Abrir Nuestro Mundo"}
       </Button>
 
-      <div className="mt-6 p-4 bg-muted/50 rounded-lg border border-muted">
-        <p className="text-sm font-medium text-center mb-2">Credenciales de prueba:</p>
-        <div className="text-xs space-y-1">
-          <p>
-            <strong>Él:</strong> el@amor.com / amor123
-          </p>
-          <p>
-            <strong>Ella:</strong> ella@amor.com / amor123
-          </p>
-        </div>
-      </div>
+      <p className="text-center text-xs text-muted-foreground">
+        Este rincón es privado. Entra solo con las credenciales de ustedes dos.
+      </p>
     </form>
   )
 }

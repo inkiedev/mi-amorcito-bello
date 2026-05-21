@@ -8,8 +8,17 @@ import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { getMemories, getSpecialDays, getQuotes } from "@/lib/supabase/queries"
 import type { RomanticMemory, SpecialDay, Quote } from "@/lib/types"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+
+type CalendarContentItem = {
+  type: RomanticMemory["type"] | "quote" | "special-day"
+  title: string
+  emoji: string
+  id: string
+}
 
 export default function CalendarPage() {
+  const dataVersion = useRomanticDataVersion()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [memories, setMemories] = useState<RomanticMemory[]>([])
@@ -36,7 +45,7 @@ export default function CalendarPage() {
     }
 
     fetchData()
-  }, [])
+  }, [dataVersion])
 
   const monthNames = [
     "Enero",
@@ -67,7 +76,7 @@ export default function CalendarPage() {
 
   const getContentForDate = (day: number) => {
     const dateKey = formatDateKey(currentDate.getFullYear(), currentDate.getMonth(), day)
-    const content = []
+    const content: CalendarContentItem[] = []
     
     // Add memories for this date
     memories.forEach(memory => {
@@ -181,20 +190,18 @@ export default function CalendarPage() {
   const selectedDateContent = selectedDate ? getContentForDate(selectedDate.getDate()) : null
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="romantic-page min-h-screen">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4 animate-bounce-slow">📅</div>
-          <h1 className="font-serif text-4xl font-bold text-primary mb-2">Calendario del Amor</h1>
+      <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-8 text-center letter-reveal">
+          <div className="mb-4 text-6xl animate-bounce-slow">📅</div>
+          <h1 className="script-title love-ribbon mb-8 text-5xl font-bold text-foreground md:text-6xl">Calendario del Amor</h1>
           <p className="text-lg text-muted-foreground">Cada día es especial cuando lo vivimos juntos</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Calendario */}
+        <div className="grid gap-8 lg:grid-cols-3" aria-busy={isLoading}>
           <div className="lg:col-span-2">
-            <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
+            <Card className="glass-panel">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <Button
@@ -205,7 +212,7 @@ export default function CalendarPage() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <CardTitle className="text-2xl text-primary">
+                  <CardTitle className="script-title text-3xl text-foreground">
                     {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                   </CardTitle>
                   <Button
@@ -219,8 +226,7 @@ export default function CalendarPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                {/* Días de la semana */}
-                <div className="grid grid-cols-7 gap-2 mb-4">
+                <div className="mb-4 grid grid-cols-7 gap-2">
                   {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((day) => (
                     <div
                       key={day}
@@ -231,18 +237,16 @@ export default function CalendarPage() {
                   ))}
                 </div>
 
-                {/* Días del calendario */}
                 <div className="grid grid-cols-7 gap-2">{renderCalendarDays()}</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Panel de detalles */}
           <div className="space-y-6">
             {selectedDate && selectedDateContent ? (
-              <Card className="bg-accent/10 border-accent/20">
+              <Card className="romantic-card">
                 <CardHeader>
-                  <CardTitle className="text-accent-foreground">
+                  <CardTitle className="script-title text-2xl text-foreground">
                     {selectedDate.toLocaleDateString("es-ES", {
                       weekday: "long",
                       year: "numeric",
@@ -255,7 +259,7 @@ export default function CalendarPage() {
                   {selectedDateContent.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center gap-3 p-3 bg-background/50 rounded-lg hover:bg-background/70 transition-colors cursor-pointer"
+                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-foreground/10 bg-foreground/[0.04] p-3 transition-colors hover:bg-foreground/[0.07]"
                     >
                       <span className="text-2xl">{item.emoji}</span>
                       <div>
@@ -277,7 +281,7 @@ export default function CalendarPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="bg-muted/20">
+              <Card className="glass-panel">
                 <CardContent className="p-6 text-center">
                   <div className="text-4xl mb-2">💕</div>
                   <p className="text-muted-foreground">Selecciona una fecha para ver nuestros momentos especiales</p>
@@ -285,10 +289,9 @@ export default function CalendarPage() {
               </Card>
             )}
 
-            {/* Estadísticas rápidas */}
-            <Card className="bg-primary/5 border-primary/20">
+            <Card className="romantic-card">
               <CardHeader>
-                <CardTitle className="text-primary">Este Mes</CardTitle>
+                <CardTitle className="script-title text-3xl text-foreground">Este Mes</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div className="flex justify-between">

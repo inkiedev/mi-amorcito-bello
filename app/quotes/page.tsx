@@ -8,10 +8,16 @@ import { useEffect, useState } from "react"
 import { getQuotes } from "@/lib/supabase/queries"
 import type { Quote } from "@/lib/types"
 import { AddQuoteModal } from "@/components/add-quote-modal"
+import { useAuth } from "@/contexts/auth-context"
+import { getCoupleAuthorIcon, getCoupleAuthorLabel } from "@/lib/utils"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
 
 export default function QuotesPage() {
+  const { user } = useAuth()
+  const dataVersion = useRomanticDataVersion()
   const [quotes, setQuotes] = useState<Quote[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [filter, setFilter] = useState<"all" | "favorites" | "mine" | "theirs">("all")
 
   useEffect(() => {
     const fetchQuotes = async () => {
@@ -26,41 +32,65 @@ export default function QuotesPage() {
     }
 
     fetchQuotes()
-  }, [])
+  }, [dataVersion])
+
+  const filteredQuotes = quotes.filter((quote) => {
+    if (filter === "favorites") return quote.is_favorite
+    if (filter === "mine") return quote.created_by === user?.id
+    if (filter === "theirs") return quote.created_by !== user?.id
+    return true
+  })
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="romantic-page min-h-screen">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header de la página */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4 animate-sparkle">💬</div>
-          <h1 className="font-serif text-4xl font-bold text-accent-foreground mb-2">Frases de Amor</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        <div className="mb-8 text-center letter-reveal">
+          <div className="mb-4 text-6xl animate-sparkle">💬</div>
+          <h1 className="script-title love-ribbon mb-8 text-5xl font-bold text-foreground md:text-6xl">Frases de Amor</h1>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Palabras que nacen del corazón y llegan al alma, nuestras frases más hermosas
           </p>
         </div>
 
-        {/* Filtros */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          <Button variant="outline" size="sm" className="border-accent/20 hover:bg-accent/10 bg-transparent">
+        <div className="mb-8 flex flex-wrap justify-center gap-2">
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            size="sm"
+            className="rounded-full border-accent/20 hover:bg-accent/10"
+            onClick={() => setFilter("all")}
+          >
             Todas las frases
           </Button>
-          <Button variant="outline" size="sm" className="border-accent/20 hover:bg-accent/10 bg-transparent">
+          <Button
+            variant={filter === "favorites" ? "default" : "outline"}
+            size="sm"
+            className="rounded-full border-accent/20 hover:bg-accent/10"
+            onClick={() => setFilter("favorites")}
+          >
             💕 Favoritas
           </Button>
-          <Button variant="outline" size="sm" className="border-accent/20 hover:bg-accent/10 bg-transparent">
-            Por él
+          <Button
+            variant={filter === "mine" ? "default" : "outline"}
+            size="sm"
+            className="rounded-full border-accent/20 hover:bg-accent/10"
+            onClick={() => setFilter("mine")}
+          >
+            Por mí
           </Button>
-          <Button variant="outline" size="sm" className="border-accent/20 hover:bg-accent/10 bg-transparent">
-            Por ella
+          <Button
+            variant={filter === "theirs" ? "default" : "outline"}
+            size="sm"
+            className="rounded-full border-accent/20 hover:bg-accent/10"
+            onClick={() => setFilter("theirs")}
+          >
+            Por mi amor
           </Button>
           <AddQuoteModal>
-            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">+ Nueva Frase</Button>
+            <Button className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90">+ Nueva Frase</Button>
           </AddQuoteModal>
         </div>
 
-        {/* Lista de frases */}
         {isLoading ? (
           <div className="space-y-6">
             {[1, 2, 3, 4].map((i) => (
@@ -96,23 +126,31 @@ export default function QuotesPage() {
               </Button>
             </AddQuoteModal>
           </div>
+        ) : filteredQuotes.length === 0 ? (
+          <Card className="glass-panel">
+            <CardContent className="p-10 text-center">
+              <div className="mb-4 text-5xl">⌕</div>
+              <h3 className="script-title mb-2 text-3xl text-foreground">No hay frases en este filtro</h3>
+              <p className="text-muted-foreground">Cambia el filtro o guarda una nueva frase.</p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-6">
-            {quotes.map((quote) => (
+            {filteredQuotes.map((quote) => (
               <Card
                 key={quote.id}
-                className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-accent/5 via-card/50 to-primary/5 backdrop-blur-sm border-accent/10 relative overflow-hidden"
+                className="romantic-card"
               >
-                {/* Elemento decorativo */}
-                <div className="absolute top-4 right-4 text-4xl opacity-20">💌</div>
+                <div className="absolute right-4 top-4 text-4xl opacity-20">❦</div>
 
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="text-3xl">{quote.created_by === "him" ? "👨" : "👩"}</div>
+                      <div className="text-3xl">{getCoupleAuthorIcon(quote.created_by, user?.id)}</div>
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Por {quote.created_by === "him" ? "él" : "ella"} • {new Date(quote.date).toLocaleDateString()}
+                          Por {getCoupleAuthorLabel(quote.created_by, user?.id)} •{" "}
+                          {new Date(quote.date).toLocaleDateString()}
                         </p>
                         {quote.context && (
                           <Badge
@@ -129,35 +167,22 @@ export default function QuotesPage() {
                 </CardHeader>
 
                 <CardContent>
-                  <blockquote className="text-lg font-serif italic text-accent-foreground mb-4 leading-relaxed text-balance">
-                    "{quote.text}"
+                  <blockquote className="script-title mb-4 text-balance text-2xl italic leading-relaxed text-foreground">
+                    &ldquo;{quote.text}&rdquo;
                   </blockquote>
 
-                  <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="sm" className="text-accent hover:bg-accent/10">
-                      💕 {quote.is_favorite ? "Favorita" : ""}
-                    </Button>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:bg-muted/10">
-                        🔗 Compartir
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:bg-muted/10">
-                        ✏️ Editar
-                      </Button>
-                    </div>
-                  </div>
+                  {quote.is_favorite && <Badge className="bg-accent text-accent-foreground">Favorita</Badge>}
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
 
-        {/* Botón flotante para agregar frase */}
         <div className="fixed bottom-8 right-8">
           <AddQuoteModal>
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
+              className="size-14 rounded-full bg-accent text-accent-foreground shadow-lg hover:bg-accent/90"
             >
               <span className="text-2xl">💬</span>
             </Button>

@@ -1,28 +1,30 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Playfair_Display, Inter } from "next/font/google"
+import { Cormorant_Garamond, Nunito } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
 import { AuthProvider } from "@/contexts/auth-context"
 import { AuthGuard } from "@/components/auth-guard"
+import { RomanticCanvas } from "@/components/romantic-canvas"
 
-const playfair = Playfair_Display({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
-  variable: "--font-playfair",
+  variable: "--font-cormorant",
 })
 
-const inter = Inter({
+const nunito = Nunito({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-nunito",
 })
 
 export const metadata: Metadata = {
-  title: "Nuestro Amor Eterno 💕",
-  description: "Un lugar especial para nuestros recuerdos, momentos y amor infinito",
-  generator: "v0.app",
+  title: "Nuestro Amor",
+  description: "Un rincón privado para recuerdos, cartas, fotos y días especiales",
 }
 
 export default function RootLayout({
@@ -32,7 +34,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`font-sans ${playfair.variable} ${inter.variable} antialiased`}>
+      <body className={`font-sans ${cormorant.variable} ${nunito.variable} antialiased`}>
+        <RomanticCanvas />
         <AuthProvider>
           <AuthGuard>
             <Suspense fallback={null}>{children}</Suspense>

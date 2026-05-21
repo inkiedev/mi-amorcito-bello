@@ -1,10 +1,13 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CalendarHeart, Camera, LibraryBig, Quote } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 import { getDashboardStats } from "@/lib/supabase/queries"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
 
 export function DashboardStats() {
+  const dataVersion = useRomanticDataVersion()
   const [stats, setStats] = useState({
     memories: 0,
     photos: 0,
@@ -19,7 +22,7 @@ export function DashboardStats() {
         const data = await getDashboardStats()
         setStats({
           memories: data.memories,
-          photos: data.memories, // For now, photos are part of memories
+          photos: data.photos,
           quotes: data.quotes,
           specialDays: data.specialDays,
         })
@@ -31,53 +34,32 @@ export function DashboardStats() {
     }
 
     fetchStats()
-  }, [])
+  }, [dataVersion])
+
+  const items = [
+    { label: "Recuerdos", value: stats.memories, icon: LibraryBig, color: "text-primary" },
+    { label: "Fotos", value: stats.photos, icon: Camera, color: "text-secondary" },
+    { label: "Frases", value: stats.quotes, icon: Quote, color: "text-accent" },
+    { label: "Fechas", value: stats.specialDays, icon: CalendarHeart, color: "text-secondary" },
+  ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-primary">💭 Recuerdos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">
-            {isLoading ? "..." : stats.memories}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      {items.map((item, index) => {
+        const Icon = item.icon
 
-      <Card className="bg-secondary/5 border-secondary/20 hover:bg-secondary/10 transition-colors">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-secondary-foreground">📸 Fotos</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-secondary-foreground">
-            {isLoading ? "..." : stats.photos}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-accent/5 border-accent/20 hover:bg-accent/10 transition-colors">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-accent-foreground">💬 Frases</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-accent-foreground">
-            {isLoading ? "..." : stats.quotes}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-primary/5 border-primary/20 hover:bg-primary/10 transition-colors">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-primary">🎉 Días Especiales</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-primary">
-            {isLoading ? "..." : stats.specialDays}
-          </div>
-        </CardContent>
-      </Card>
+        return (
+          <Card key={item.label} className="romantic-card rounded-lg letter-reveal" style={{ animationDelay: `${index * 0.07}s` }}>
+            <CardContent className="relative z-10 p-5">
+              <div className={`mb-5 grid size-11 place-items-center rounded-full border border-current/25 bg-current/10 ${item.color}`}>
+                <Icon className="size-5" />
+              </div>
+              <div className="script-title text-4xl font-bold text-foreground">{isLoading ? "..." : item.value}</div>
+              <p className="text-sm text-muted-foreground">{item.label}</p>
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }

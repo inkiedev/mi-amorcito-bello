@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/contexts/auth-context"
 import {
   Dialog,
@@ -20,6 +20,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
+import Image from "next/image"
+import { notifyRomanticDataChanged } from "@/hooks/use-romantic-data-version"
 
 interface AddPhotoModalProps {
   children: React.ReactNode
@@ -35,6 +37,14 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string>("")
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [previewUrl])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -62,7 +72,7 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
       await uploadPhoto(file, fileName)
       
       // Get public URL
-      const imageUrl = getPhotoUrl(fileName)
+      const imageUrl = await getPhotoUrl(fileName)
       
       // Create memory record
       await createMemory({
@@ -85,9 +95,7 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
       setFile(null)
       setPreviewUrl("")
       setOpen(false)
-      
-      // Reload page to show new photo
-      window.location.reload()
+      notifyRomanticDataChanged()
     } catch (error) {
       console.error('Error uploading photo:', error)
       alert('Error al subir la foto. Intenta de nuevo.')
@@ -119,11 +127,13 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
               className="border-secondary/20 focus:border-secondary"
             />
             {previewUrl && (
-              <div className="mt-2">
-                <img
+              <div className="relative mt-2 h-32 w-full overflow-hidden rounded-md border border-secondary/20">
+                <Image
                   src={previewUrl}
-                  alt="Preview"
-                  className="w-full h-32 object-cover rounded-md border border-secondary/20"
+                  alt="Vista previa de la foto"
+                  fill
+                  unoptimized
+                  className="object-cover"
                 />
               </div>
             )}
@@ -167,7 +177,7 @@ export function AddPhotoModal({ children }: AddPhotoModalProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                <Calendar mode="single" selected={date} onSelect={setDate} />
               </PopoverContent>
             </Popover>
           </div>

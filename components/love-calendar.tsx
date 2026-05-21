@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { getSpecialDays } from "@/lib/supabase/queries"
 import type { SpecialDay } from "@/lib/types"
+import Link from "next/link"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
 
 export function LoveCalendar() {
+  const dataVersion = useRomanticDataVersion()
   const [specialDays, setSpecialDays] = useState<SpecialDay[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
@@ -24,7 +27,7 @@ export function LoveCalendar() {
     }
 
     fetchSpecialDays()
-  }, [])
+  }, [dataVersion])
 
   const today = new Date()
 
@@ -64,9 +67,9 @@ export function LoveCalendar() {
   const nextSpecialDay = upcomingEvents[0]
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-accent/10 hover-lift romantic-particles">
+    <Card className="romantic-card rounded-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-accent-foreground">
+        <CardTitle className="script-title flex items-center gap-2 text-3xl text-foreground">
           <span className="animate-gentle-bounce">📅</span>
           <span>Días Especiales</span>
         </CardTitle>
@@ -92,7 +95,7 @@ export function LoveCalendar() {
         ) : (
           <>
             {nextSpecialDay && (
-              <div className="mb-6 p-4 bg-gradient-to-r from-accent/10 to-primary/10 rounded-lg border border-accent/20 animate-romantic-glow">
+              <div className="mb-6 rounded-lg border border-accent/25 bg-accent/10 p-4">
                 <div className="text-center">
                   <div className="text-3xl mb-2 animate-pulse-heart">{nextSpecialDay.emoji}</div>
                   <h3 className="font-medium text-accent-foreground mb-1">{nextSpecialDay.title}</h3>
@@ -117,7 +120,7 @@ export function LoveCalendar() {
               {upcomingEvents.slice(0, 4).map((day, index) => (
                 <div
                   key={day.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-all duration-300 hover-lift"
+                  className="flex items-center justify-between rounded-lg border border-foreground/10 bg-foreground/[0.04] p-3 transition-all duration-300 hover:-translate-y-1 hover:bg-foreground/[0.07]"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-center gap-3">
@@ -147,13 +150,15 @@ export function LoveCalendar() {
             </div>
 
             <div className="mt-4 text-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-primary hover:bg-primary/10 transition-all duration-300 hover:scale-105"
-              >
-                📅 Ver calendario completo
-              </Button>
+              <Link href="/calendar">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full text-primary hover:bg-primary/10"
+                >
+                  📅 Ver calendario completo
+                </Button>
+              </Link>
             </div>
           </>
         )}

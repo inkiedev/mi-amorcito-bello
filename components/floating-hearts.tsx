@@ -11,10 +11,10 @@ interface Heart {
   delay: number
 }
 
+const ROMANTIC_EMOJIS = ["💕", "💖", "💗", "💘", "💝", "💞", "💟", "❤️", "🌹", "✨"]
+
 export function FloatingHearts() {
   const [hearts, setHearts] = useState<Heart[]>([])
-
-  const romanticEmojis = ["💕", "💖", "💗", "💘", "💝", "💞", "💟", "❤️", "🌹", "✨"]
 
   useEffect(() => {
     const createHeart = () => {
@@ -23,7 +23,7 @@ export function FloatingHearts() {
         left: Math.random() * 100,
         animationDuration: 4 + Math.random() * 3, // 4-7 segundos para más variedad
         size: 16 + Math.random() * 16, // 16-32px para más variedad
-        emoji: romanticEmojis[Math.floor(Math.random() * romanticEmojis.length)], // Emoji aleatorio
+        emoji: ROMANTIC_EMOJIS[Math.floor(Math.random() * ROMANTIC_EMOJIS.length)], // Emoji aleatorio
         delay: Math.random() * 2, // Delay aleatorio para más naturalidad
       }
 

@@ -4,82 +4,79 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Colores románticos con tonos morados suaves */
-  --background: oklch(0.99 0.01 280);
-  --foreground: oklch(0.2 0.05 280);
-  --card: oklch(0.98 0.02 280);
-  --card-foreground: oklch(0.25 0.05 280);
-  --popover: oklch(0.98 0.02 280);
-  --popover-foreground: oklch(0.25 0.05 280);
-  --primary: oklch(0.65 0.15 285); /* Morado suave principal */
-  --primary-foreground: oklch(0.98 0.02 280);
-  --secondary: oklch(0.92 0.05 275); /* Lavanda suave */
-  --secondary-foreground: oklch(0.3 0.05 280);
-  --muted: oklch(0.95 0.03 280);
-  --muted-foreground: oklch(0.5 0.03 280);
-  --accent: oklch(0.75 0.12 295); /* Violeta suave */
-  --accent-foreground: oklch(0.2 0.05 280);
+  --background: oklch(0.145 0.045 348);
+  --foreground: oklch(0.965 0.018 74);
+  --card: oklch(0.205 0.048 350);
+  --card-foreground: oklch(0.965 0.018 74);
+  --popover: oklch(0.18 0.045 350);
+  --popover-foreground: oklch(0.965 0.018 74);
+  --primary: oklch(0.72 0.17 7);
+  --primary-foreground: oklch(0.13 0.045 348);
+  --secondary: oklch(0.78 0.115 78);
+  --secondary-foreground: oklch(0.14 0.04 348);
+  --muted: oklch(0.28 0.035 340);
+  --muted-foreground: oklch(0.78 0.035 60);
+  --accent: oklch(0.75 0.105 173);
+  --accent-foreground: oklch(0.12 0.035 190);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.9 0.03 280);
-  --input: oklch(0.9 0.03 280);
-  --ring: oklch(0.65 0.15 285);
-  --chart-1: oklch(0.65 0.15 285);
-  --chart-2: oklch(0.75 0.12 295);
-  --chart-3: oklch(0.55 0.18 275);
-  --chart-4: oklch(0.7 0.1 290);
-  --chart-5: oklch(0.8 0.08 300);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.97 0.02 280);
-  --sidebar-foreground: oklch(0.25 0.05 280);
-  --sidebar-primary: oklch(0.65 0.15 285);
-  --sidebar-primary-foreground: oklch(0.98 0.02 280);
-  --sidebar-accent: oklch(0.92 0.05 275);
-  --sidebar-accent-foreground: oklch(0.3 0.05 280);
-  --sidebar-border: oklch(0.9 0.03 280);
-  --sidebar-ring: oklch(0.65 0.15 285);
+  --destructive-foreground: oklch(0.98 0.01 20);
+  --border: oklch(0.96 0.018 74 / 0.16);
+  --input: oklch(0.96 0.018 74 / 0.14);
+  --ring: oklch(0.78 0.115 78);
+  --chart-1: oklch(0.72 0.17 7);
+  --chart-2: oklch(0.78 0.115 78);
+  --chart-3: oklch(0.75 0.105 173);
+  --chart-4: oklch(0.62 0.16 325);
+  --chart-5: oklch(0.84 0.08 42);
+  --radius: 0.7rem;
+  --sidebar: oklch(0.16 0.045 348);
+  --sidebar-foreground: oklch(0.965 0.018 74);
+  --sidebar-primary: oklch(0.72 0.17 7);
+  --sidebar-primary-foreground: oklch(0.13 0.045 348);
+  --sidebar-accent: oklch(0.75 0.105 173);
+  --sidebar-accent-foreground: oklch(0.12 0.035 190);
+  --sidebar-border: oklch(0.96 0.018 74 / 0.16);
+  --sidebar-ring: oklch(0.78 0.115 78);
 }
 
 .dark {
-  /* Modo oscuro romántico con morados */
-  --background: oklch(0.12 0.02 280);
-  --foreground: oklch(0.95 0.02 280);
-  --card: oklch(0.15 0.02 280);
-  --card-foreground: oklch(0.92 0.02 280);
-  --popover: oklch(0.15 0.02 280);
-  --popover-foreground: oklch(0.92 0.02 280);
-  --primary: oklch(0.7 0.15 285);
-  --primary-foreground: oklch(0.12 0.02 280);
-  --secondary: oklch(0.25 0.03 275);
-  --secondary-foreground: oklch(0.9 0.02 280);
-  --muted: oklch(0.2 0.02 280);
-  --muted-foreground: oklch(0.6 0.02 280);
-  --accent: oklch(0.8 0.12 295);
-  --accent-foreground: oklch(0.12 0.02 280);
+  --background: oklch(0.145 0.045 348);
+  --foreground: oklch(0.965 0.018 74);
+  --card: oklch(0.205 0.048 350);
+  --card-foreground: oklch(0.965 0.018 74);
+  --popover: oklch(0.18 0.045 350);
+  --popover-foreground: oklch(0.965 0.018 74);
+  --primary: oklch(0.72 0.17 7);
+  --primary-foreground: oklch(0.13 0.045 348);
+  --secondary: oklch(0.78 0.115 78);
+  --secondary-foreground: oklch(0.14 0.04 348);
+  --muted: oklch(0.28 0.035 340);
+  --muted-foreground: oklch(0.78 0.035 60);
+  --accent: oklch(0.75 0.105 173);
+  --accent-foreground: oklch(0.12 0.035 190);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.25 0.02 280);
-  --input: oklch(0.25 0.02 280);
-  --ring: oklch(0.7 0.15 285);
-  --chart-1: oklch(0.7 0.15 285);
-  --chart-2: oklch(0.8 0.12 295);
-  --chart-3: oklch(0.6 0.18 275);
-  --chart-4: oklch(0.75 0.1 290);
-  --chart-5: oklch(0.85 0.08 300);
-  --sidebar: oklch(0.18 0.02 280);
-  --sidebar-foreground: oklch(0.92 0.02 280);
-  --sidebar-primary: oklch(0.7 0.15 285);
-  --sidebar-primary-foreground: oklch(0.12 0.02 280);
-  --sidebar-accent: oklch(0.25 0.03 275);
-  --sidebar-accent-foreground: oklch(0.9 0.02 280);
-  --sidebar-border: oklch(0.25 0.02 280);
-  --sidebar-ring: oklch(0.7 0.15 285);
+  --border: oklch(0.96 0.018 74 / 0.16);
+  --input: oklch(0.96 0.018 74 / 0.14);
+  --ring: oklch(0.78 0.115 78);
+  --chart-1: oklch(0.72 0.17 7);
+  --chart-2: oklch(0.78 0.115 78);
+  --chart-3: oklch(0.75 0.105 173);
+  --chart-4: oklch(0.62 0.16 325);
+  --chart-5: oklch(0.84 0.08 42);
+  --sidebar: oklch(0.16 0.045 348);
+  --sidebar-foreground: oklch(0.965 0.018 74);
+  --sidebar-primary: oklch(0.72 0.17 7);
+  --sidebar-primary-foreground: oklch(0.13 0.045 348);
+  --sidebar-accent: oklch(0.75 0.105 173);
+  --sidebar-accent-foreground: oklch(0.12 0.035 190);
+  --sidebar-border: oklch(0.96 0.018 74 / 0.16);
+  --sidebar-ring: oklch(0.78 0.115 78);
 }
 
 @theme inline {
-  /* Configuración de fuentes románticas */
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-nunito);
+  --font-serif: var(--font-cormorant);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -124,7 +121,44 @@
   }
   body {
     @apply bg-background text-foreground;
+    background:
+      linear-gradient(135deg, oklch(0.17 0.055 348) 0%, oklch(0.115 0.038 12) 48%, oklch(0.16 0.035 180) 100%);
+    min-height: 100vh;
   }
+
+  ::selection {
+    background: color-mix(in oklch, var(--primary), transparent 45%);
+    color: var(--foreground);
+  }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 15%, color-mix(in oklch, var(--primary), transparent 82%) 15% 16%, transparent 16% 42%, color-mix(in oklch, var(--secondary), transparent 86%) 42% 43%, transparent 43% 100%),
+    repeating-linear-gradient(90deg, color-mix(in oklch, var(--foreground), transparent 96%) 0 1px, transparent 1px 78px),
+    repeating-linear-gradient(0deg, color-mix(in oklch, var(--foreground), transparent 97%) 0 1px, transparent 1px 78px);
+  mask-image: linear-gradient(to bottom, black, transparent 86%);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 12% 22%, color-mix(in oklch, var(--secondary), transparent 65%) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 72% 18%, color-mix(in oklch, var(--foreground), transparent 58%) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 36% 82%, color-mix(in oklch, var(--accent), transparent 62%) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 84% 76%, color-mix(in oklch, var(--primary), transparent 58%) 0 1px, transparent 1.5px);
+  background-size: 220px 220px, 280px 280px, 260px 260px, 310px 310px;
+  animation: star-drift 24s linear infinite;
+  opacity: 0.72;
 }
 
 /* Animaciones románticas personalizadas */
@@ -248,6 +282,51 @@
   }
 }
 
+@keyframes star-drift {
+  from {
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  to {
+    background-position: 220px 220px, -280px 280px, 260px -260px, -310px -310px;
+  }
+}
+
+@keyframes candle-flicker {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: translateY(0) skewX(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-2px) skewX(-3deg);
+  }
+  70% {
+    opacity: 0.86;
+    transform: translateY(1px) skewX(2deg);
+  }
+}
+
+@keyframes trace-line {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes letter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px) rotateX(7deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0);
+  }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -319,4 +398,124 @@
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(186, 164, 255, 0.1), transparent);
   animation: love-wave 3s ease-in-out infinite;
+}
+
+.romantic-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.62;
+  mix-blend-mode: screen;
+}
+
+.romantic-page {
+  position: relative;
+  z-index: 0;
+  min-height: 100vh;
+}
+
+.glass-panel {
+  border: 1px solid color-mix(in oklch, var(--foreground), transparent 84%);
+  background:
+    linear-gradient(135deg, color-mix(in oklch, var(--card), transparent 8%), color-mix(in oklch, var(--background), transparent 18%)),
+    linear-gradient(90deg, color-mix(in oklch, var(--foreground), transparent 94%), transparent);
+  box-shadow: 0 24px 80px color-mix(in oklch, black, transparent 68%);
+  backdrop-filter: blur(18px);
+}
+
+.romantic-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklch, var(--foreground), transparent 86%);
+  background:
+    linear-gradient(140deg, color-mix(in oklch, var(--card), transparent 10%), color-mix(in oklch, var(--background), transparent 28%));
+  box-shadow: 0 18px 55px color-mix(in oklch, black, transparent 76%);
+  transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.romantic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, transparent, color-mix(in oklch, var(--secondary), transparent 86%), transparent);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.romantic-card:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in oklch, var(--secondary), transparent 48%);
+  box-shadow: 0 26px 80px color-mix(in oklch, black, transparent 64%);
+}
+
+.romantic-card:hover::before {
+  opacity: 1;
+}
+
+.script-title {
+  font-family: var(--font-cormorant), serif;
+  letter-spacing: 0;
+}
+
+.luminous-text {
+  background: linear-gradient(
+    100deg,
+    var(--foreground),
+    color-mix(in oklch, var(--secondary), white 8%),
+    color-mix(in oklch, var(--primary), white 12%),
+    var(--foreground)
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: trace-line 9s linear infinite;
+}
+
+.love-ribbon {
+  position: relative;
+}
+
+.love-ribbon::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.65rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--secondary), var(--primary), transparent);
+  background-size: 200% 100%;
+  animation: trace-line 5s linear infinite;
+}
+
+.candle-glow {
+  animation: candle-flicker 4s ease-in-out infinite;
+}
+
+.letter-reveal {
+  animation: letter-rise 0.7s ease both;
+}
+
+.nav-glass {
+  border-bottom: 1px solid color-mix(in oklch, var(--foreground), transparent 88%);
+  background: color-mix(in oklch, var(--background), transparent 20%);
+  backdrop-filter: blur(18px);
+}
+
+.romantic-input {
+  background: color-mix(in oklch, var(--background), transparent 42%);
+  border-color: color-mix(in oklch, var(--foreground), transparent 82%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
 }

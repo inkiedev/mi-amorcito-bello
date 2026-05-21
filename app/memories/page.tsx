@@ -10,11 +10,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { getMemories } from "@/lib/supabase/queries"
 import type { RomanticMemory } from "@/lib/types"
 import { AddMemoryModal } from "@/components/add-memory-modal"
+import { useAuth } from "@/contexts/auth-context"
+import { getCoupleAuthorIcon, getCoupleAuthorLabel } from "@/lib/utils"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
 
 export default function MemoriesPage() {
+  const { user } = useAuth()
+  const dataVersion = useRomanticDataVersion()
   const [selectedMemory, setSelectedMemory] = useState<RomanticMemory | null>(null)
   const [memories, setMemories] = useState<RomanticMemory[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showFavorites, setShowFavorites] = useState(false)
+  const [sortMode, setSortMode] = useState<"newest" | "oldest">("newest")
 
   useEffect(() => {
     const fetchMemories = async () => {
@@ -29,56 +37,74 @@ export default function MemoriesPage() {
     }
 
     fetchMemories()
-  }, [])
+  }, [dataVersion])
 
-  const getMoodEmoji = (mood: string) => {
-    const moods = {
-      "nervous-excited": "😊💕",
-      "overwhelming-love": "🥰💖",
-      "reflective-growth": "🤗💪",
-    }
-    return moods[mood as keyof typeof moods] || "💕"
-  }
+  const filteredMemories = memories
+    .filter((memory) => {
+      const query = searchTerm.trim().toLowerCase()
+      if (!query) return true
+
+      return [memory.title, memory.description, memory.content, ...memory.tags]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query))
+    })
+    .filter((memory) => (showFavorites ? memory.is_favorite : true))
+    .sort((a, b) => {
+      const dateA = new Date(a.date).getTime()
+      const dateB = new Date(b.date).getTime()
+      return sortMode === "newest" ? dateB - dateA : dateA - dateB
+    })
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="romantic-page min-h-screen">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* Header de la página */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4 animate-pulse-heart">📖</div>
-          <h1 className="font-serif text-4xl font-bold text-primary mb-2">Nuestras Historias de Amor</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+      <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-8 text-center letter-reveal">
+          <div className="mb-4 text-6xl candle-glow">📖</div>
+          <h1 className="script-title love-ribbon mb-8 text-5xl font-bold text-foreground md:text-6xl">
+            Nuestras Historias
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
             Cada recuerdo es una página de nuestra historia, escrita con amor y guardada para siempre
           </p>
         </div>
 
-        {/* Barra de búsqueda y filtros */}
-        <Card className="mb-8 bg-primary/5 border-primary/20">
+        <Card className="glass-panel mb-8">
           <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex flex-col items-center gap-4 md:flex-row">
               <div className="flex-1">
                 <Input
                   placeholder="Buscar en nuestras historias..."
-                  className="border-primary/20 focus:border-primary"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  className="romantic-input"
                 />
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10 bg-transparent">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={showFavorites ? "default" : "outline"}
+                  size="sm"
+                  className="rounded-full border-primary/20 hover:bg-primary/10"
+                  onClick={() => setShowFavorites((current) => !current)}
+                >
                   💕 Favoritos
                 </Button>
-                <Button variant="outline" size="sm" className="border-primary/20 hover:bg-primary/10 bg-transparent">
-                  📅 Por fecha
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full border-primary/20 bg-transparent hover:bg-primary/10"
+                  onClick={() => setSortMode((current) => (current === "newest" ? "oldest" : "newest"))}
+                >
+                  📅 {sortMode === "newest" ? "Recientes" : "Antiguos"}
                 </Button>
                 <AddMemoryModal>
-                  <Button className="bg-primary hover:bg-primary/90">+ Nueva Historia</Button>
+                  <Button className="rounded-full bg-primary hover:bg-primary/90">+ Nueva Historia</Button>
                 </AddMemoryModal>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Lista de recuerdos mejorada */}
         {isLoading ? (
           <div className="grid gap-6">
             {[1, 2, 3].map((i) => (
@@ -114,29 +140,37 @@ export default function MemoriesPage() {
               </Button>
             </AddMemoryModal>
           </div>
+        ) : filteredMemories.length === 0 ? (
+          <Card className="glass-panel">
+            <CardContent className="p-10 text-center">
+              <div className="mb-4 text-5xl">⌕</div>
+              <h3 className="script-title mb-2 text-3xl text-foreground">No encontré esa historia</h3>
+              <p className="text-muted-foreground">Prueba con otra palabra o cambia los filtros.</p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="grid gap-6">
-            {memories.map((memory) => (
+            {filteredMemories.map((memory) => (
               <Card
                 key={memory.id}
-                className="hover:shadow-xl transition-all duration-500 bg-card/50 backdrop-blur-sm border-primary/10 hover:border-primary/30 hover:scale-[1.02]"
+                className="romantic-card"
               >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <CardTitle className="text-xl text-primary hover:text-primary/80 transition-colors">
+                        <CardTitle className="script-title text-3xl text-foreground transition-colors hover:text-secondary">
                           {memory.title}
                         </CardTitle>
                         {memory.is_favorite && <span className="text-xl animate-pulse-heart">💕</span>}
                       </div>
                       <CardDescription className="flex items-center gap-2 mb-2">
-                        <span>Por {memory.created_by === "him" ? "él" : "ella"}</span>
+                        <span>Por {getCoupleAuthorLabel(memory.created_by, user?.id)}</span>
                         <span>•</span>
                         <span>{new Date(memory.date).toLocaleDateString()}</span>
                       </CardDescription>
                     </div>
-                    <div className="text-3xl">{memory.created_by === "him" ? "👨" : "👩"}</div>
+                    <div className="text-3xl">{getCoupleAuthorIcon(memory.created_by, user?.id)}</div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -158,7 +192,7 @@ export default function MemoriesPage() {
                         <Button
                           variant="default"
                           size="sm"
-                          className="bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105"
+                          className="rounded-full bg-primary hover:bg-primary/90"
                           onClick={() => setSelectedMemory(memory)}
                         >
                           📖 Leer historia completa
@@ -171,7 +205,12 @@ export default function MemoriesPage() {
                         <div className="space-y-4">
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <span>📅 {selectedMemory?.date}</span>
-                            <span>👤 {selectedMemory?.created_by === "him" ? "Él" : "Ella"}</span>
+                            <span>
+                              👤{" "}
+                              {selectedMemory
+                                ? getCoupleAuthorLabel(selectedMemory.created_by, user?.id)
+                                : "alguien especial"}
+                            </span>
                           </div>
                           <div className="prose prose-lg max-w-none">
                             <p className="mb-4 leading-relaxed text-foreground">
@@ -181,20 +220,6 @@ export default function MemoriesPage() {
                         </div>
                       </DialogContent>
                     </Dialog>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-primary hover:bg-primary/10 transition-all duration-300 hover:scale-105"
-                    >
-                      💕 {memory.is_favorite ? "Favorito" : "Me encanta"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:bg-muted/10 transition-all duration-300 hover:scale-105"
-                    >
-                      ✏️ Editar
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -202,10 +227,9 @@ export default function MemoriesPage() {
           </div>
         )}
 
-        {/* Botón flotante para agregar */}
         <div className="fixed bottom-8 right-8">
           <AddMemoryModal>
-            <Button size="lg" className="rounded-full h-14 w-14 bg-primary hover:bg-primary/90 shadow-lg">
+            <Button size="lg" className="size-14 rounded-full bg-primary shadow-lg hover:bg-primary/90">
               <span className="text-2xl">+</span>
             </Button>
           </AddMemoryModal>

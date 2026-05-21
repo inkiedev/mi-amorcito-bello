@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
+
+const LOVE_START_DATE = new Date("2024-10-25T00:00:00")
 
 export function LoveCounter() {
   const [timeData, setTimeData] = useState({
@@ -11,13 +12,10 @@ export function LoveCounter() {
     seconds: 0,
   })
 
-  //No cambiar esto, esta fecha es la final
-  const startDate = new Date("2024-10-25T00:00:00")
-
   useEffect(() => {
     const updateCounter = () => {
       const now = new Date()
-      const diff = now.getTime() - startDate.getTime()
+      const diff = now.getTime() - LOVE_START_DATE.getTime()
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24))
       const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
@@ -33,35 +31,28 @@ export function LoveCounter() {
     return () => clearInterval(interval)
   }, [])
 
+  const units = [
+    { label: "días", value: timeData.days },
+    { label: "horas", value: timeData.hours },
+    { label: "minutos", value: timeData.minutes },
+    { label: "segundos", value: timeData.seconds },
+  ]
+
   return (
-    <Card className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border-primary/20 relative overflow-hidden">
-      <div className="absolute top-2 right-2 text-4xl opacity-20 animate-pulse-heart">💕</div>
-      <CardHeader>
-        <CardTitle className="text-center text-primary font-serif">Tiempo Juntos</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="space-y-1">
-            <div className="text-2xl font-bold text-primary">{timeData.days}</div>
-            <div className="text-xs text-muted-foreground">Días</div>
+    <div className="relative overflow-hidden rounded-lg border border-secondary/20 bg-background/25 p-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {units.map((unit, index) => (
+          <div
+            key={unit.label}
+            className="rounded-lg border border-foreground/10 bg-foreground/[0.04] p-4 text-center letter-reveal"
+            style={{ animationDelay: `${index * 0.08}s` }}
+          >
+            <div className="script-title text-4xl font-bold text-secondary">{unit.value}</div>
+            <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{unit.label}</div>
           </div>
-          <div className="space-y-1">
-            <div className="text-2xl font-bold text-secondary-foreground">{timeData.hours}</div>
-            <div className="text-xs text-muted-foreground">Horas</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-2xl font-bold text-accent-foreground">{timeData.minutes}</div>
-            <div className="text-xs text-muted-foreground">Minutos</div>
-          </div>
-          <div className="space-y-1">
-            <div className="text-2xl font-bold text-primary">{timeData.seconds}</div>
-            <div className="text-xs text-muted-foreground">Segundos</div>
-          </div>
-        </div>
-        <p className="text-center text-sm text-muted-foreground mt-4 italic">
-          Cada segundo contigo es un regalo del cielo
-        </p>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+      <p className="mt-4 text-center text-sm italic text-muted-foreground">Cada segundo todavía encuentra dónde quedarse.</p>
+    </div>
   )
 }

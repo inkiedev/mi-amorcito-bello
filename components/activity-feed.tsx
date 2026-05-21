@@ -1,13 +1,12 @@
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function ActivityFeed() {
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-secondary/10">
+    <Card className="romantic-card rounded-lg">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-secondary-foreground">
+        <CardTitle className="script-title flex items-center gap-2 text-3xl text-foreground">
           🔔 <span>Actividad Reciente</span>
         </CardTitle>
       </CardHeader>

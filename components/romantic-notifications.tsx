@@ -12,21 +12,21 @@ interface Notification {
   icon: string
 }
 
+const LOVE_MESSAGES = [
+  { message: "Recuerda decirle lo mucho que la amas hoy 💕", type: "love" as const, icon: "💕" },
+  { message: "¿Qué tal si planeas una sorpresa romántica? ✨", type: "love" as const, icon: "✨" },
+  { message: "Es un buen momento para crear un nuevo recuerdo juntos 📸", type: "memory" as const, icon: "📸" },
+  { message: "Tu aniversario se acerca, ¡prepara algo especial! 🎉", type: "special" as const, icon: "🎉" },
+  { message: "Envíale una foto de cuando eran novios 💌", type: "memory" as const, icon: "💌" },
+]
+
 export function RomanticNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
-
-  const loveMessages = [
-    { message: "Recuerda decirle lo mucho que la amas hoy 💕", type: "love" as const, icon: "💕" },
-    { message: "¿Qué tal si planeas una sorpresa romántica? ✨", type: "love" as const, icon: "✨" },
-    { message: "Es un buen momento para crear un nuevo recuerdo juntos 📸", type: "memory" as const, icon: "📸" },
-    { message: "Tu aniversario se acerca, ¡prepara algo especial! 🎉", type: "special" as const, icon: "🎉" },
-    { message: "Envíale una foto de cuando eran novios 💌", type: "memory" as const, icon: "💌" },
-  ]
 
   useEffect(() => {
     // Mostrar una notificación aleatoria cada 30 segundos
     const interval = setInterval(() => {
-      const randomMessage = loveMessages[Math.floor(Math.random() * loveMessages.length)]
+      const randomMessage = LOVE_MESSAGES[Math.floor(Math.random() * LOVE_MESSAGES.length)]
       const newNotification: Notification = {
         id: Date.now().toString(),
         ...randomMessage,

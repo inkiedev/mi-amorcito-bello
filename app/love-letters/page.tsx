@@ -1,133 +1,116 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { AddLoveLetterModal } from "@/components/add-love-letter-modal"
+import { LoveLetterGenerator } from "@/components/love-letter-generator"
 import { NavigationHeader } from "@/components/navigation-header"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/contexts/auth-context"
+import { useRomanticDataVersion } from "@/hooks/use-romantic-data-version"
+import { getLoveLetters } from "@/lib/supabase/queries"
+import type { RomanticMemory } from "@/lib/types"
+import { getCoupleAuthorLabel } from "@/lib/utils"
 
 export default function LoveLettersPage() {
-  // Datos simulados de cartas de amor
-  const loveLetters = [
-    {
-      id: "1",
-      title: "Mi primera carta para ti",
-      preview: "Mi amor, desde el momento en que te vi, supe que mi vida había cambiado para siempre...",
-      author: "him",
-      date: "2024-01-30",
-      wordCount: 245,
-      isRead: true,
-    },
-    {
-      id: "2",
-      title: "Para el amor de mi vida",
-      preview: "Querido corazón mío, cada día que pasa me enamoro más de ti, de tu sonrisa, de tu forma de ser...",
-      author: "her",
-      date: "2024-02-10",
-      wordCount: 189,
-      isRead: true,
-    },
-    {
-      id: "3",
-      title: "En nuestro aniversario",
-      preview:
-        "Han pasado meses desde que comenzamos esta aventura juntos, y cada día ha sido mejor que el anterior...",
-      author: "him",
-      date: "2024-03-15",
-      wordCount: 312,
-      isRead: false,
-    },
-  ]
+  const { user } = useAuth()
+  const dataVersion = useRomanticDataVersion()
+  const [letters, setLetters] = useState<RomanticMemory[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchLetters = async () => {
+      try {
+        const data = await getLoveLetters()
+        setLetters(data)
+      } catch (error) {
+        console.error("Error fetching love letters:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchLetters()
+  }, [dataVersion])
 
   return (
     <div className="min-h-screen bg-background">
       <NavigationHeader />
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        {/* Header de la página */}
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4 animate-float">💌</div>
-          <h1 className="font-serif text-4xl font-bold text-accent-foreground mb-2">Cartas de Amor</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Mensajes del corazón, palabras que expresan lo que sentimos en lo más profundo del alma
+      <div className="container mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-8 text-center">
+          <div className="mb-4 text-6xl animate-float">💌</div>
+          <h1 className="mb-2 font-serif text-4xl font-bold text-accent-foreground">Cartas de Amor</h1>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Mensajes largos, promesas, disculpas bonitas y palabras para volver a leer cuando haga falta.
           </p>
         </div>
 
-        {/* Botón para escribir nueva carta */}
-        <div className="text-center mb-8">
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">✍️ Escribir Nueva Carta</Button>
+        <div className="mb-8 flex flex-wrap justify-center gap-3">
+          <AddLoveLetterModal>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90">✍️ Escribir Carta</Button>
+          </AddLoveLetterModal>
+          <LoveLetterGenerator>
+            <Button variant="outline" className="bg-transparent">
+              ✨ Generar Inspiración
+            </Button>
+          </LoveLetterGenerator>
         </div>
 
-        {/* Lista de cartas */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {loveLetters.map((letter) => (
-            <Card
-              key={letter.id}
-              className="hover:shadow-lg transition-all duration-300 hover:scale-105 bg-gradient-to-br from-accent/5 via-card/50 to-primary/5 backdrop-blur-sm border-accent/10 relative overflow-hidden"
-            >
-              {/* Elemento decorativo */}
-              <div className="absolute top-4 right-4 text-4xl opacity-20 animate-float">💕</div>
-
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{letter.author === "him" ? "👨" : "👩"}</div>
+        {isLoading ? (
+          <div className="grid gap-6 md:grid-cols-2">
+            {[1, 2, 3, 4].map((item) => (
+              <Card key={item} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-5 w-2/3 rounded bg-muted/30" />
+                  <div className="h-3 w-1/3 rounded bg-muted/20" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-20 rounded bg-muted/20" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : letters.length === 0 ? (
+          <Card className="border-accent/20 bg-accent/5">
+            <CardContent className="p-10 text-center">
+              <div className="mb-4 text-5xl animate-pulse-heart">💝</div>
+              <h2 className="mb-2 font-serif text-2xl text-accent-foreground">Todavía no hay cartas guardadas</h2>
+              <p className="mx-auto mb-6 max-w-md text-muted-foreground">
+                La primera puede ser cortita. Lo importante es que sea suya.
+              </p>
+              <AddLoveLetterModal>
+                <Button>Guardar Primera Carta</Button>
+              </AddLoveLetterModal>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2">
+            {letters.map((letter) => (
+              <Card
+                key={letter.id}
+                className="relative overflow-hidden border-accent/10 bg-gradient-to-br from-accent/10 via-card/70 to-primary/10 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              >
+                <div className="absolute right-4 top-4 text-4xl opacity-20">💌</div>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <CardTitle className="text-lg text-accent-foreground">{letter.title}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-muted-foreground">
-                          Por {letter.author === "him" ? "él" : "ella"}
-                        </span>
-                        <span className="text-sm text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground">{letter.date}</span>
-                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Por {getCoupleAuthorLabel(letter.created_by, user?.id)} •{" "}
+                        {new Date(letter.date).toLocaleDateString()}
+                      </p>
                     </div>
+                    {letter.is_favorite && <Badge>Favorita</Badge>}
                   </div>
-                  {!letter.isRead && <Badge className="bg-primary text-primary-foreground">Nueva</Badge>}
-                </div>
-              </CardHeader>
-
-              <CardContent>
-                <p className="text-muted-foreground mb-4 leading-relaxed italic">{letter.preview}</p>
-
-                <div className="flex items-center justify-between mb-4">
-                  <Badge variant="outline" className="bg-accent/5 border-accent/20 text-accent-foreground">
-                    {letter.wordCount} palabras
-                  </Badge>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" className="text-accent hover:bg-accent/10">
-                    📖 Leer Completa
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:bg-muted/10">
-                    💕 Favorita
-                  </Button>
-                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:bg-muted/10">
-                    🔗 Compartir
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Mensaje inspiracional */}
-        <Card className="mt-12 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
-          <CardContent className="p-8 text-center">
-            <div className="text-4xl mb-4">💝</div>
-            <h3 className="font-serif text-2xl text-primary mb-3">"Las palabras del corazón nunca se olvidan"</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Cada carta es un pedacito de nuestro amor que permanecerá para siempre
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Botón flotante para escribir carta */}
-        <div className="fixed bottom-8 right-8">
-          <Button
-            size="lg"
-            className="rounded-full h-14 w-14 bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg"
-          >
-            <span className="text-2xl">✍️</span>
-          </Button>
-        </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="line-clamp-5 whitespace-pre-line text-muted-foreground">{letter.content}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

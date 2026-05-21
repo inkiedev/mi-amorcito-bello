@@ -24,10 +24,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-secondary/20 to-accent/10">
+      <div className="romantic-page flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4 animate-pulse-heart">💜</div>
-          <p className="text-lg text-muted-foreground">Cargando nuestro amor...</p>
+          <div className="mx-auto mb-4 grid size-20 place-items-center rounded-full border border-secondary/30 bg-secondary/10 text-4xl candle-glow">
+            ♥
+          </div>
+          <p className="script-title text-3xl text-foreground">Cargando nuestro amor...</p>
         </div>
       </div>
     )
@@ -35,16 +37,12 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   if (!user && pathname !== '/login') {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="romantic-page flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <Card className="bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
+          <Card className="glass-panel overflow-hidden rounded-lg">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl font-serif text-primary mb-2">
-                💜 Mi Amorcito Bello
-              </CardTitle>
-              <CardDescription>
-                Ingresa para acceder a nuestros recuerdos
-              </CardDescription>
+              <CardTitle className="script-title mb-2 text-4xl text-foreground">Nuestro Amor</CardTitle>
+              <CardDescription>Este rincón es privado.</CardDescription>
             </CardHeader>
             <CardContent>
               <LoginForm />
